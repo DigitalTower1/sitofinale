@@ -1,0 +1,27 @@
+{
+  "hdris": [
+    {
+      "name": "sunset-preset",
+      "source": "drei:preset:sunset",
+      "usage": "Hero IBL"
+    }
+  ],
+  "gltf": [
+    {
+      "name": "digital-tower-core",
+      "tris": 120000,
+      "size": "3.4MB (draco)",
+      "textures": [
+        "tower-albedo.ktx2"
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "name": "tower-albedo.ktx2",
+      "size": "640KB",
+      "type": "KTX2",
+      "usage": "Tower metal"
+    }
+  ]
+}

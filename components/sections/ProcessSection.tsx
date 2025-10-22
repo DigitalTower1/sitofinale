@@ -43,6 +43,32 @@ export function ProcessSection() {
           scrub: 1
         }
       });
+
+      gsap.to('.process__aura', {
+        backgroundPosition: '120% 40%',
+        duration: 18,
+        ease: 'none',
+        repeat: -1
+      });
+
+      gsap.utils.toArray<HTMLElement>('.process__grid li').forEach((item, index) => {
+        gsap.fromTo(
+          item,
+          { opacity: 0, y: 32, filter: 'blur(12px)' },
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 85%'
+            },
+            delay: index * 0.1
+          }
+        );
+      });
     }, container);
 
     return () => ctx.revert();
@@ -57,6 +83,7 @@ export function ProcessSection() {
         </h2>
       </div>
       <div className="process__grid">
+        <div className="process__aura" aria-hidden />
         <div className="process__line" aria-hidden />
         <ul>
           {steps.map((step) => (

@@ -55,6 +55,7 @@ export function CaseStudiesSection() {
 
   useEffect(() => {
     if (reducedMotion || !container.current) return;
+    const cleanups: Array<() => void> = [];
     const ctx = gsap.context(() => {
       gsap.fromTo(
         '.cases__hero',
@@ -70,6 +71,33 @@ export function CaseStudiesSection() {
           }
         }
       );
+
+      gsap.to('.cases__hero-gradient', {
+        backgroundPosition: '120% 40%',
+        duration: 18,
+        ease: 'none',
+        repeat: -1
+      });
+
+      gsap.to('.cases__hero-orb', {
+        yPercent: -12,
+        xPercent: 10,
+        scale: 1.08,
+        duration: 6.5,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true
+      });
+
+      gsap.to('.case-card__flare', {
+        opacity: 0.8,
+        scale: 1.05,
+        duration: 5.5,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
+        stagger: 0.2
+      });
 
       gsap.utils.toArray<HTMLElement>('.cases__chapter').forEach((chapter, index) => {
         gsap.fromTo(
@@ -105,7 +133,89 @@ export function CaseStudiesSection() {
       );
     }, container);
 
-    return () => ctx.revert();
+    const heroVisual = container.current.querySelector<HTMLElement>('.cases__hero-visual');
+    if (heroVisual) {
+      gsap.set(heroVisual, { transformPerspective: 900 });
+      const rotateX = gsap.quickTo(heroVisual, 'rotationX', { duration: 0.6, ease: 'power3.out' });
+      const rotateY = gsap.quickTo(heroVisual, 'rotationY', { duration: 0.6, ease: 'power3.out' });
+      const orb = heroVisual.querySelector<HTMLElement>('.cases__hero-orb');
+
+      const handleMove = (event: PointerEvent) => {
+        const rect = heroVisual.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        rotateY((relX - 0.5) * 18);
+        rotateX(-(relY - 0.5) * 14);
+        if (orb) {
+          gsap.to(orb, {
+            x: (relX - 0.5) * 60,
+            y: (relY - 0.5) * 40,
+            duration: 0.6,
+            ease: 'power3.out'
+          });
+        }
+      };
+
+      const reset = () => {
+        rotateX(0);
+        rotateY(0);
+        if (orb) {
+          gsap.to(orb, { x: 0, y: 0, duration: 0.8, ease: 'power3.out' });
+        }
+      };
+
+      heroVisual.addEventListener('pointermove', handleMove);
+      heroVisual.addEventListener('pointerleave', reset);
+      cleanups.push(() => {
+        heroVisual.removeEventListener('pointermove', handleMove);
+        heroVisual.removeEventListener('pointerleave', reset);
+      });
+    }
+
+    const cards = container.current.querySelectorAll<HTMLElement>('.case-card');
+    cards.forEach((card) => {
+      gsap.set(card, { transformPerspective: 700 });
+      const flare = card.querySelector<HTMLElement>('.case-card__flare');
+      const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
+      const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
+
+      const handleMove = (event: PointerEvent) => {
+        const rect = card.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        rotateY((relX - 0.5) * 12);
+        rotateX(-(relY - 0.5) * 10);
+
+        if (flare) {
+          gsap.to(flare, {
+            x: (relX - 0.5) * 50,
+            y: (relY - 0.5) * 50,
+            duration: 0.5,
+            ease: 'power3.out'
+          });
+        }
+      };
+
+      const reset = () => {
+        rotateX(0);
+        rotateY(0);
+        if (flare) {
+          gsap.to(flare, { x: 0, y: 0, duration: 0.6, ease: 'power3.out' });
+        }
+      };
+
+      card.addEventListener('pointermove', handleMove);
+      card.addEventListener('pointerleave', reset);
+      cleanups.push(() => {
+        card.removeEventListener('pointermove', handleMove);
+        card.removeEventListener('pointerleave', reset);
+      });
+    });
+
+    return () => {
+      cleanups.forEach((dispose) => dispose());
+      ctx.revert();
+    };
   }, [reducedMotion]);
 
   return (
@@ -123,6 +233,8 @@ export function CaseStudiesSection() {
       <article className="cases__hero">
         <div className="cases__hero-visual" aria-hidden>
           <div className="cases__hero-gradient" />
+          <div className="cases__hero-noise" />
+          <div className="cases__hero-orb" />
           <div className="cases__hero-highlight">Immersive Garden inspired</div>
         </div>
         <div className="cases__hero-body">
@@ -151,6 +263,7 @@ export function CaseStudiesSection() {
         {supportingCases.map((caseStudy) => (
           <Link key={caseStudy.slug} href={`/case-studies/${caseStudy.slug}`} className="case-card">
             <div className="case-card__frame">
+              <div className="case-card__flare" aria-hidden />
               <div className="case-card__image" aria-hidden />
             </div>
             <div className="case-card__body">

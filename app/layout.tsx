@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Playfair_Display, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Providers } from '../components/Providers';
+import { ThemeScript } from '../components/ThemeScript';
 import { defaultMetadata } from '../lib/seo/metadata';
 import { organizationSchema, serviceSchema, kpiDatasetSchema } from '../lib/seo/schema';
 import { Navigation } from '../components/Navigation';
@@ -31,8 +32,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="it" className={`${playfair.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
-      <body>
+    <html
+      lang="it"
+      data-theme="dark"
+      className={`${playfair.variable} ${spaceGrotesk.variable}`}
+      suppressHydrationWarning
+    >
+      <body data-theme="dark">
+        <ThemeScript />
         <Providers>
           <a href="#main" className="skip-link">
             Salta al contenuto principale

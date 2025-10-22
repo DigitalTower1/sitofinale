@@ -17,7 +17,6 @@ const STORAGE_KEY = 'digital-tower-theme';
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
   root.dataset.theme = theme;
-  root.style.setProperty('color-scheme', theme === 'dark' ? 'dark' : 'light');
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

@@ -47,7 +47,6 @@
 
 .magnetic-btn:focus-visible {
   border-color: rgba(232, 184, 107, 1);
-  box-shadow: 0 0 0 3px rgba(232, 184, 107, 0.25);
 }
 
 .nav {
@@ -64,7 +63,6 @@
   background: linear-gradient(120deg, rgba(5, 5, 5, 0.65), rgba(27, 30, 36, 0.75));
   backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid rgba(220, 194, 138, 0.15);
-  box-shadow: var(--shadow-soft);
   opacity: 0.95;
 }
 
@@ -91,7 +89,6 @@
   height: 42px;
   background: linear-gradient(180deg, rgba(220, 194, 138, 0.7), rgba(232, 184, 107, 1));
   border-radius: var(--radius-pill);
-  box-shadow: 0 0 18px rgba(232, 184, 107, 0.6);
 }
 
 .nav__links {
@@ -234,7 +231,6 @@
   background: linear-gradient(160deg, rgba(5, 5, 5, 0.9), rgba(27, 30, 36, 0.75));
   border-radius: var(--radius-lg);
   border: 1px solid rgba(220, 194, 138, 0.18);
-  box-shadow: var(--shadow-elevated);
   overflow: hidden;
 }
 

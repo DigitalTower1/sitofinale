@@ -3,7 +3,7 @@
 @import "../styles/sections.css";
 
 :root {
-  color-scheme: dark light;
+  color-scheme: dark;
   background-color: var(--color-obsidian);
 }
 
@@ -22,6 +22,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body::before {
   content: '';
   position: fixed;
@@ -29,9 +33,11 @@ body::before {
   pointer-events: none;
   background-image: radial-gradient(circle at top left, rgba(220, 194, 138, 0.12), transparent 45%),
     radial-gradient(circle at bottom right, rgba(232, 184, 107, 0.15), transparent 50%);
-  opacity: 0.9;
+  opacity: 0.45;
   mix-blend-mode: screen;
-  z-index: calc(var(--z-overlay) - 1);
+  z-index: -3;
+  transform: translate3d(0, 0, 0);
+  animation: body-aurora 18s var(--ease-in-out-lux) infinite alternate;
 }
 
 body::after {
@@ -42,8 +48,119 @@ body::after {
   background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Cfilter id="n" x="0" y="0" width="100%25" height="100%25"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="400" height="400" filter="url(%23n)" opacity="0.35"/%3E%3C/svg%3E');
   mix-blend-mode: soft-light;
   opacity: var(--grain-opacity);
-  z-index: calc(var(--z-overlay) - 2);
+  z-index: -4;
+  background-size: 520px 520px;
+  animation: grain-shift 12s steps(2) infinite;
 }
+
+.marble-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -5;
+  opacity: 0.32;
+  overflow: hidden;
+  contain: paint;
+}
+
+.marble-field__texture,
+.marble-field__cells {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.marble-field__texture {
+  background:
+    radial-gradient(460px 420px at 22% 24%, rgba(232, 184, 107, 0.18), transparent 72%),
+    radial-gradient(520px 480px at 70% 68%, rgba(118, 134, 255, 0.14), transparent 78%),
+    radial-gradient(560px 520px at 48% 86%, rgba(245, 241, 232, 0.2), transparent 82%),
+    radial-gradient(520px 520px at 58% 32%, rgba(220, 194, 138, 0.16), transparent 80%);
+  background-size: 520px 520px;
+  mix-blend-mode: screen;
+  filter: saturate(125%);
+  transform: translate3d(calc(var(--marble-shift-x, 0) * 0.18), calc(var(--marble-shift-y, 0) * 0.18), 0);
+  animation: marble-vein-pulse 28s var(--ease-in-out-lux) infinite alternate;
+}
+
+.marble-field__cells {
+  --marble-cell-opacity: clamp(0.18, calc(var(--pointer-norm-y, 0.5) + 0.1), 0.48);
+  background-image:
+    radial-gradient(circle at calc(var(--pointer-norm-x, 0.5) * 100%) calc(var(--pointer-norm-y, 0.5) * 100%), rgba(255, 255, 255, 0.28), rgba(232, 184, 107, 0) 58%),
+    conic-gradient(from 90deg at 50% 50%, rgba(245, 241, 232, 0.1), rgba(220, 194, 138, 0.12), rgba(18, 18, 20, 0.65), rgba(245, 241, 232, 0.1)),
+    linear-gradient(90deg, rgba(245, 241, 232, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(245, 241, 232, 0.08) 1px, transparent 1px);
+  background-size: 160% 160%, 200% 200%, 200px 200px, 200px 200px;
+  background-position: center, center, 0 0, 0 0;
+  mix-blend-mode: screen;
+  opacity: var(--marble-cell-opacity);
+  transform: translate3d(var(--marble-cell-shift-x, 0), var(--marble-cell-shift-y, 0), 0);
+  animation: marble-cell-flow 30s linear infinite alternate;
+  mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.45) 58%, transparent 90%);
+  backdrop-filter: blur(16px);
+}
+
+@keyframes marble-vein-pulse {
+  0% {
+    transform: translate3d(calc(var(--marble-shift-x, 0) * 0.18), calc(var(--marble-shift-y, 0) * 0.18), 0) scale(1);
+    opacity: 0.55;
+  }
+
+  50% {
+    transform: translate3d(calc(var(--marble-shift-x, 0) * 0.22), calc(var(--marble-shift-y, 0) * 0.22), 0) scale(1.05);
+    opacity: 0.68;
+  }
+
+  100% {
+    transform: translate3d(calc(var(--marble-shift-x, 0) * 0.18), calc(var(--marble-shift-y, 0) * 0.18), 0) scale(1.02);
+    opacity: 0.58;
+  }
+}
+
+@keyframes marble-cell-flow {
+  0% {
+    background-position: center, 0% 0%, 0 0, 0 0;
+  }
+
+  50% {
+    background-position: center, 60% 40%, 30px 40px, 40px 30px;
+  }
+
+  100% {
+    background-position: center, 120% 80%, 0 0, 0 0;
+  }
+}
+
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+}
+
+.scroll-progress__track {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px) saturate(120%);
+  overflow: hidden;
+  border-bottom: 1px solid rgba(232, 184, 107, 0.18);
+}
+
+.scroll-progress__bar {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: left;
+  transform: scaleX(var(--progress-value, 0));
+  background: linear-gradient(90deg, rgba(40, 124, 255, 0.1), rgba(232, 184, 107, 0.9), rgba(255, 255, 255, 0.7));
+  transition: transform 0.25s var(--ease-out-lux);
+}
+
 
 a {
   color: inherit;
@@ -97,4 +214,44 @@ button {
 .skip-link:focus {
   transform: translate(-50%, 0);
   opacity: 1;
+}
+
+@keyframes body-aurora {
+  0% {
+    transform: translate3d(-8%, -6%, 0) scale(1);
+    filter: saturate(110%);
+  }
+
+  50% {
+    transform: translate3d(6%, 8%, 0) scale(1.05);
+    filter: saturate(130%);
+  }
+
+  100% {
+    transform: translate3d(-4%, 4%, 0) scale(1.02);
+    filter: saturate(115%);
+  }
+}
+
+@keyframes grain-shift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-20%, 15%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after {
+    animation: none !important;
+  }
+
+  .card--carbon::before,
+  .scroll-progress__bar {
+    animation: none !important;
+    transition: none !important;
+  }
 }

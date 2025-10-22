@@ -3,7 +3,6 @@
 ## Feature flags
 - `ENABLE_3D`: disattiva completamente la scena WebGL, sostituendola con poster statico.
 - `ENABLE_BLOOM`: spegne il pass Bloom per device low-end o preferenze di performance.
-- `ENABLE_SSR_REFL`: disattiva Screen Space Reflections, riducendo draw calls e calcoli.
 
 ## prefers-reduced-motion
 - Rimuove parallax, ScrollTrigger pinning e timeline di ingresso.

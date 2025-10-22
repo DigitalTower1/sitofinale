@@ -3,7 +3,7 @@
 @import "../styles/sections.css";
 
 :root {
-  color-scheme: dark light;
+  color-scheme: dark;
   background-color: var(--color-obsidian);
 }
 

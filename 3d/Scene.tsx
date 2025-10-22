@@ -2,8 +2,8 @@
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Float, Html, OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette, ToneMapping, SSR } from '@react-three/postprocessing';
-import { BlendFunction, ToneMappingMode } from 'postprocessing';
+import { EffectComposer, Bloom, Vignette, ToneMapping } from '@react-three/postprocessing';
+import { ToneMappingMode } from 'postprocessing';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useMotionPreferences } from '../hooks/useMotionPreferences';
@@ -173,10 +173,10 @@ function SceneContent({ onContextLost, onContextRestored }: SceneContentProps) {
       <fog attach="fog" args={[0x050505, 8, 24]} />
       <PerspectiveCamera makeDefault fov={42} position={[0, 1.6, 6]} />
       <OrbitControls enablePan={false} enableZoom={false} enableRotate={false} />
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[4, 6, 2]} intensity={2.2} color={0xffe2b2} castShadow />
-      <spotLight position={[-3, 3, 4]} angle={Math.PI / 5} intensity={2.4} color={0xf5f1e8} penumbra={0.6} />
-      <Environment preset="sunset" background={false} intensity={0.9} />
+      <ambientLight intensity={0.22} />
+      <directionalLight position={[4, 6, 2]} intensity={1.8} color={0xffe2b2} castShadow />
+      <spotLight position={[-3, 3, 4]} angle={Math.PI / 5} intensity={2} color={0xf5f1e8} penumbra={0.6} />
+      <Environment preset="sunset" background={false} />
       <group>
         <Tower />
         {!reducedMotion && <Particles />}
@@ -190,29 +190,8 @@ function SceneContent({ onContextLost, onContextRestored }: SceneContentProps) {
           />
         </mesh>
       </group>
-      <EffectComposer multisampling={2} disableNormalPass={!isFeatureEnabled('ENABLE_SSR_REFL')}>
+      <EffectComposer multisampling={1}>
         {isFeatureEnabled('ENABLE_BLOOM') && <Bloom intensity={0.85} luminanceThreshold={0.4} luminanceSmoothing={0.12} />}
-        {isFeatureEnabled('ENABLE_SSR_REFL') && (
-          <SSR
-            intensity={0.25}
-            exponent={1}
-            distance={10}
-            fade={2}
-            roughnessFade={1}
-            thickness={8}
-            ior={1.45}
-            maxRoughness={0.6}
-            maxDepthDifference={0.4}
-            blend={BlendFunction.NORMAL}
-            correctionRadius={1.5}
-            useNormalMap={false}
-            useRoughnessMap={false}
-            resolutionScale={1}
-            blur={0.5}
-            steps={20}
-            refineSteps={4}
-          />
-        )}
         <ToneMapping adaptive={false} mode={ToneMappingMode.ACES_FILMIC} />
         <Vignette eskil={false} offset={0.3} darkness={0.6} />
       </EffectComposer>
@@ -258,7 +237,7 @@ export function HeroScene() {
       <Canvas
         key={resetKey}
         gl={{ antialias: true, stencil: false, depth: true, powerPreference: 'high-performance' }}
-        dpr={[1, 1.8]}
+        dpr={[1, 1.4]}
         performance={{ min: 0.5 }}
         className={reducedMotion ? 'hero__canvas hero__canvas--static' : 'hero__canvas'}
         onCreated={() => {

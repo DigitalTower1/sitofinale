@@ -5,21 +5,12 @@ const THEME_SCRIPT = `(() => {
   const root = document.documentElement;
   const body = document.body;
 
-  const removeInlineStyles = () => {
-    root.removeAttribute('style');
-    if (body) {
-      body.removeAttribute('style');
-    }
-  };
-
   const apply = (theme) => {
     root.dataset.theme = theme;
     if (body) {
       body.dataset.theme = theme;
     }
   };
-
-  removeInlineStyles();
 
   try {
     const stored = window.localStorage.getItem(storageKey);

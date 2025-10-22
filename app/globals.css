@@ -95,11 +95,11 @@ body::after {
   pointer-events: none;
   z-index: 150;
   --light-current-center: 40%;
-  --light-current-radius: 200px;
-  --light-current-halo: 320px;
+  --light-current-radius: 160px;
+  --light-current-halo: 260px;
   --light-next-center: 65%;
-  --light-next-radius: 220px;
-  --light-next-halo: 340px;
+  --light-next-radius: 170px;
+  --light-next-halo: 280px;
 }
 
 .guided-light::before {
@@ -107,11 +107,11 @@ body::after {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle var(--light-current-halo) at 50% var(--light-current-center), rgba(4, 4, 10, 0) 0%, rgba(4, 4, 10, 0.62) 68%, rgba(4, 4, 10, 0.88) 100%),
-    radial-gradient(circle var(--light-next-halo) at 50% var(--light-next-center), rgba(4, 4, 10, 0) 0%, rgba(4, 4, 10, 0.58) 64%, rgba(4, 4, 10, 0.85) 100%);
-  background-color: rgba(5, 5, 16, 0.78);
+    radial-gradient(circle var(--light-current-halo) at 50% var(--light-current-center), rgba(4, 4, 10, 0) 0%, rgba(4, 4, 10, 0.38) 58%, rgba(4, 4, 10, 0.64) 92%),
+    radial-gradient(circle var(--light-next-halo) at 50% var(--light-next-center), rgba(4, 4, 10, 0) 0%, rgba(4, 4, 10, 0.32) 54%, rgba(4, 4, 10, 0.58) 90%);
+  background-color: rgba(5, 5, 16, 0.38);
   mix-blend-mode: multiply;
-  backdrop-filter: saturate(112%) brightness(0.88);
+  backdrop-filter: saturate(110%) brightness(0.92);
 }
 
 .guided-light::after {
@@ -119,11 +119,11 @@ body::after {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle var(--light-current-radius) at 50% var(--light-current-center), rgba(248, 220, 180, 0.55) 0%, rgba(248, 220, 180, 0.18) 42%, transparent 72%),
-    radial-gradient(circle var(--light-next-radius) at 50% var(--light-next-center), rgba(150, 166, 255, 0.38) 0%, rgba(150, 166, 255, 0.14) 38%, transparent 70%);
+    radial-gradient(circle var(--light-current-radius) at 50% var(--light-current-center), rgba(248, 220, 180, 0.48) 0%, rgba(248, 220, 180, 0.16) 40%, transparent 68%),
+    radial-gradient(circle var(--light-next-radius) at 50% var(--light-next-center), rgba(150, 166, 255, 0.32) 0%, rgba(150, 166, 255, 0.12) 36%, transparent 66%);
   mix-blend-mode: screen;
-  filter: blur(32px) saturate(115%);
-  opacity: 0.68;
+  filter: blur(26px) saturate(112%);
+  opacity: 0.52;
   transition: transform 0.5s var(--ease-out-lux), opacity 0.4s ease;
 }
 

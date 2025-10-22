@@ -43,10 +43,8 @@ function applyTheme(theme: Theme) {
   const root = document.documentElement;
   const body = document.body;
   root.dataset.theme = theme;
-  root.removeAttribute('style');
   if (body) {
     body.dataset.theme = theme;
-    body.removeAttribute('style');
   }
 }
 

@@ -47,8 +47,8 @@ export function GuidedLight() {
         const rect = element.el.getBoundingClientRect();
         const center = rect.top + rect.height / 2;
         const centerRatio = center / viewportHeight;
-        const radius = Math.max(140, Math.min(220, rect.height * 0.65));
-        const halo = Math.max(radius + 90, radius * 1.55);
+        const radius = Math.max(110, Math.min(170, rect.height * 0.48));
+        const halo = Math.max(radius + 70, radius * 1.25);
 
         lightRef.current?.style.setProperty(`--${prefix}-center`, `${centerRatio * 100}%`);
         lightRef.current?.style.setProperty(`--${prefix}-radius`, `${radius}px`);

@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${playfair.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
-      <body data-theme="dark">
+      <body data-theme="dark" suppressHydrationWarning>
         <ThemeScript />
         <MarbleBackground />
         <Providers>

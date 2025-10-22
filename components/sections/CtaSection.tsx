@@ -6,14 +6,14 @@ export function CtaSection() {
   return (
     <section className="section cta" aria-labelledby="cta-heading">
       <div className="cta__content">
-        <h2 id="cta-heading">Scaliamo la tua prossima vetta.</h2>
+        <h2 id="cta-heading">Prenota la call strategica e proiettiamoci verso le 7 figures.</h2>
         <p>
-          Un team full-stack di strategist, designer e creative engineer al tuo fianco. Dal primo moodboard al monitoraggio
-          continuo dei KPI.
+          Allineiamo visione, dati e craft cinematografico per trasformare la tua idea nel prossimo brand iconico. Dal primo
+          moodboard al monitoraggio continuo dei KPI condivisi.
         </p>
         <div className="cta__actions">
           <MagneticButton as="a" href="/contact" variant="primary">
-            Pianifica una sessione
+            Prenota la strategic call
           </MagneticButton>
           <MagneticButton as="a" href="mailto:hello@digitaltower.agency" variant="ghost">
             Scrivici ora

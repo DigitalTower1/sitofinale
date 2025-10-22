@@ -36,3 +36,43 @@ export const serviceSchema = {
     }
   }
 };
+
+export const kpiDatasetSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'Digital Tower Growth Benchmarks',
+  description:
+    'Metriche sintetiche dei progetti Digital Tower: revenue lift medio 3.8x, go-live 45 giorni, +214% lead qualificati, INP 98ms.',
+  creator: {
+    '@type': 'Organization',
+    name: 'Digital Tower'
+  },
+  inLanguage: ['it', 'en'],
+  license: 'https://creativecommons.org/licenses/by/4.0/',
+  variableMeasured: [
+    {
+      '@type': 'PropertyValue',
+      name: 'Revenue lift medio',
+      value: '3.8',
+      unitText: 'X'
+    },
+    {
+      '@type': 'PropertyValue',
+      name: 'Tempo di go-live',
+      value: '45',
+      unitText: 'Giorni'
+    },
+    {
+      '@type': 'PropertyValue',
+      name: 'Incremento lead qualificati',
+      value: '214',
+      unitText: 'Percent'
+    },
+    {
+      '@type': 'PropertyValue',
+      name: 'INP mediano monitorato',
+      value: '98',
+      unitText: 'Millisecond'
+    }
+  ]
+};

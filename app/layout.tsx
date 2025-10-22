@@ -4,7 +4,7 @@ import { Playfair_Display, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Providers } from '../components/Providers';
 import { defaultMetadata } from '../lib/seo/metadata';
-import { organizationSchema, serviceSchema } from '../lib/seo/schema';
+import { organizationSchema, serviceSchema, kpiDatasetSchema } from '../lib/seo/schema';
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { CursorAura } from '../components/CursorAura';
@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   ...defaultMetadata,
   other: {
     schemaOrganization: JSON.stringify(organizationSchema),
-    schemaService: JSON.stringify(serviceSchema)
+    schemaService: JSON.stringify(serviceSchema),
+    schemaDataset: JSON.stringify(kpiDatasetSchema)
   }
 };
 
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(kpiDatasetSchema) }} />
       </body>
     </html>
   );

@@ -8,13 +8,33 @@ import { useMotionPreferences } from '../../hooks/useMotionPreferences';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const studies = [
-  {
-    slug: 'aurum-atelier',
-    title: 'Aurum Atelier',
-    excerpt: 'Unrestored maison di alta gioielleria riposizionata con esperienza WebGL volumetrica e commerce 3D.',
-    metrics: ['+126% tempo on-site', '+52% conversion rate']
-  },
+const heroCase = {
+  slug: 'aurum-atelier',
+  title: 'Aurum Atelier',
+  tagline: 'Inspirational Arc — dalle botteghe storiche a un impero digitale.',
+  story: [
+    {
+      title: 'Inspire',
+      copy:
+        'Abbiamo raccontato la storia della maison con una regia WebGL ispirata alle installazioni immersive di Immersive Garden: camera dolly, luce volumetrica e materiali champagne.'
+    },
+    {
+      title: 'Ignite',
+      copy:
+        'Abbiamo orchestrato campagne Meta + TikTok con storytelling magnetico, mentre un configuratore PBR ha reso tangibile la collezione bespoke.'
+    },
+    {
+      title: 'Impact',
+      copy:
+        'Dashboard KPI in tempo reale: +3.8x revenue e +214% lead qualificati, mantenendo INP medio a 96ms su mobile premium.'
+    }
+  ],
+  metrics: ['+3.8x revenue YoY', '98ms INP', '45 giorni go-live'],
+  excerpt:
+    'Case study flagship che dimostra come la nostra torre trasformi heritage in crescita esponenziale con motion e performance bilanciati.'
+};
+
+const supportingCases = [
   {
     slug: 'veloce-motors',
     title: 'Veloce Motors',
@@ -37,16 +57,49 @@ export function CaseStudiesSection() {
     if (reducedMotion || !container.current) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        '.cases__track',
-        { xPercent: 15, opacity: 0 },
+        '.cases__hero',
+        { y: 40, opacity: 0 },
         {
-          xPercent: 0,
+          y: 0,
           opacity: 1,
           ease: 'power3.out',
           duration: 1,
           scrollTrigger: {
-            trigger: container.current,
-            start: 'top 75%'
+            trigger: '.cases__hero',
+            start: 'top 80%'
+          }
+        }
+      );
+
+      gsap.utils.toArray<HTMLElement>('.cases__chapter').forEach((chapter, index) => {
+        gsap.fromTo(
+          chapter,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: chapter,
+              start: 'top 85%'
+            },
+            delay: index * 0.08
+          }
+        );
+      });
+
+      gsap.fromTo(
+        '.cases__supporting',
+        { opacity: 0, xPercent: 8 },
+        {
+          opacity: 1,
+          xPercent: 0,
+          ease: 'power3.out',
+          duration: 0.9,
+          scrollTrigger: {
+            trigger: '.cases__supporting',
+            start: 'top 85%'
           }
         }
       );
@@ -67,8 +120,35 @@ export function CaseStudiesSection() {
           performance.
         </p>
       </div>
-      <div className="cases__track">
-        {studies.map((caseStudy) => (
+      <article className="cases__hero">
+        <div className="cases__hero-visual" aria-hidden>
+          <div className="cases__hero-gradient" />
+          <div className="cases__hero-highlight">Immersive Garden inspired</div>
+        </div>
+        <div className="cases__hero-body">
+          <p className="cases__hero-tagline">{heroCase.tagline}</p>
+          <h3>{heroCase.title}</h3>
+          <p>{heroCase.excerpt}</p>
+          <ul className="cases__hero-metrics">
+            {heroCase.metrics.map((metric) => (
+              <li key={metric}>{metric}</li>
+            ))}
+          </ul>
+          <div className="cases__chapters">
+            {heroCase.story.map((chapter) => (
+              <div key={chapter.title} className="cases__chapter">
+                <span>{chapter.title}</span>
+                <p>{chapter.copy}</p>
+              </div>
+            ))}
+          </div>
+          <Link href={`/case-studies/${heroCase.slug}`} className="cases__cta">
+            Esplora il case completo
+          </Link>
+        </div>
+      </article>
+      <div className="cases__supporting">
+        {supportingCases.map((caseStudy) => (
           <Link key={caseStudy.slug} href={`/case-studies/${caseStudy.slug}`} className="case-card">
             <div className="case-card__frame">
               <div className="case-card__image" aria-hidden />

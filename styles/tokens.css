@@ -58,12 +58,14 @@
   --t-base: 300ms;
   --t-slow: 600ms;
   --t-cinematic: 2200ms;
+  --t-summit: 3200ms;
 
   /* Easing */
   --ease-out-lux: cubic-bezier(0.16, 0.84, 0.44, 1);
   --ease-in-lux: cubic-bezier(0.33, 0.01, 0.15, 1);
   --ease-in-out-lux: cubic-bezier(0.17, 0.67, 0.45, 0.98);
   --ease-silk: cubic-bezier(0.19, 0.92, 0.36, 1.01);
+  --ease-ascent: cubic-bezier(0.18, 0.72, 0.12, 1);
 
   /* Depth layers */
   --z-cursor: 9999;
@@ -110,9 +112,11 @@
     --t-base: 0ms;
     --t-slow: 0ms;
     --t-cinematic: 0ms;
+    --t-summit: 0ms;
     --ease-out-lux: linear;
     --ease-in-lux: linear;
     --ease-in-out-lux: linear;
     --ease-silk: linear;
+    --ease-ascent: linear;
   }
 }

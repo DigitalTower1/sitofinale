@@ -95,31 +95,36 @@ body::after {
   pointer-events: none;
   z-index: 150;
   --light-current-center: 40%;
-  --light-current-spread: 90%;
+  --light-current-radius: 200px;
+  --light-current-halo: 320px;
   --light-next-center: 65%;
-  --light-next-spread: 90%;
+  --light-next-radius: 220px;
+  --light-next-halo: 340px;
 }
 
 .guided-light::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(4, 4, 10, 0.72);
+  background:
+    radial-gradient(circle var(--light-current-halo) at 50% var(--light-current-center), rgba(4, 4, 10, 0) 0%, rgba(4, 4, 10, 0.62) 68%, rgba(4, 4, 10, 0.88) 100%),
+    radial-gradient(circle var(--light-next-halo) at 50% var(--light-next-center), rgba(4, 4, 10, 0) 0%, rgba(4, 4, 10, 0.58) 64%, rgba(4, 4, 10, 0.85) 100%);
+  background-color: rgba(5, 5, 16, 0.78);
   mix-blend-mode: multiply;
-  backdrop-filter: saturate(115%) brightness(0.82);
+  backdrop-filter: saturate(112%) brightness(0.88);
 }
 
 .guided-light::after {
   content: '';
   position: absolute;
-  inset: -20%;
+  inset: 0;
   background:
-    radial-gradient(ellipse var(--light-current-spread) var(--light-current-spread) at 50% var(--light-current-center), rgba(232, 184, 107, 0.55) 0%, rgba(232, 184, 107, 0.12) 55%, transparent 80%),
-    radial-gradient(ellipse var(--light-next-spread) var(--light-next-spread) at 50% var(--light-next-center), rgba(118, 134, 255, 0.4) 0%, rgba(118, 134, 255, 0.1) 55%, transparent 85%);
+    radial-gradient(circle var(--light-current-radius) at 50% var(--light-current-center), rgba(248, 220, 180, 0.55) 0%, rgba(248, 220, 180, 0.18) 42%, transparent 72%),
+    radial-gradient(circle var(--light-next-radius) at 50% var(--light-next-center), rgba(150, 166, 255, 0.38) 0%, rgba(150, 166, 255, 0.14) 38%, transparent 70%);
   mix-blend-mode: screen;
-  filter: blur(65px) saturate(120%);
-  opacity: 0.9;
-  transition: transform 0.5s var(--ease-out-lux);
+  filter: blur(32px) saturate(115%);
+  opacity: 0.68;
+  transition: transform 0.5s var(--ease-out-lux), opacity 0.4s ease;
 }
 
 .scroll-progress {

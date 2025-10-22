@@ -45,11 +45,14 @@ export function GuidedLight() {
 
       const assign = (prefix: string, element: SectionMeta) => {
         const rect = element.el.getBoundingClientRect();
-        const heightRatio = Math.min(rect.height / viewportHeight, 1.4);
         const center = rect.top + rect.height / 2;
         const centerRatio = center / viewportHeight;
+        const radius = Math.max(140, Math.min(220, rect.height * 0.65));
+        const halo = Math.max(radius + 90, radius * 1.55);
+
         lightRef.current?.style.setProperty(`--${prefix}-center`, `${centerRatio * 100}%`);
-        lightRef.current?.style.setProperty(`--${prefix}-spread`, `${Math.max(60, heightRatio * 120)}%`);
+        lightRef.current?.style.setProperty(`--${prefix}-radius`, `${radius}px`);
+        lightRef.current?.style.setProperty(`--${prefix}-halo`, `${halo}px`);
       };
 
       assign('light-current', current);

@@ -93,7 +93,6 @@ export function ProcessSection() {
         <ul>
           {steps.map((step) => (
             <li key={step.title} className="process__step card--carbon">
-              <span className="card__edge-light" aria-hidden />
               <h3>{step.title}</h3>
               <p>{step.description}</p>
             </li>

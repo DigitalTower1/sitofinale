@@ -89,137 +89,6 @@ body::after {
   filter: blur(0.2px);
 }
 
-.guided-light {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 150;
-  --light-center: 50%;
-  --light-radius: 120px;
-  --light-softness: 320px;
-  --light-strength: 0.55;
-  --link-top: 50%;
-  --link-height: 0px;
-  --link-opacity: 0;
-  --light-band-start: 24%;
-  --light-band-end: 76%;
-  --light-glow-start: 18%;
-  --light-glow-end: 82%;
-  --light-band-mid: 50%;
-}
-
-.guided-light__dim,
-.guided-light__beam,
-.guided-light__link {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.guided-light__dim {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(6, 8, 16, 0.92) 0%,
-      rgba(6, 8, 16, 0.86) var(--light-glow-start),
-      rgba(6, 8, 16, 0.48) var(--light-band-start),
-      rgba(6, 8, 16, 0.32) var(--light-band-mid),
-      rgba(6, 8, 16, 0.48) var(--light-band-end),
-      rgba(6, 8, 16, 0.86) var(--light-glow-end),
-      rgba(6, 8, 16, 0.94) 100%
-    ),
-    radial-gradient(circle var(--light-softness) at 50% var(--light-center), rgba(10, 12, 24, 0.1) 0%, rgba(6, 8, 16, 0.65) 70%, rgba(2, 3, 8, 0.9) 100%);
-  background-color: rgba(2, 3, 8, 0.55);
-  mix-blend-mode: multiply;
-  backdrop-filter: saturate(118%) brightness(0.9);
-  transition:
-    background-position 0.45s var(--ease-out-lux),
-    background-size 0.45s var(--ease-out-lux);
-  will-change: background-position, background-size;
-}
-
-.guided-light__beam {
-  background:
-    radial-gradient(circle var(--light-radius) at 50% var(--light-center), rgba(248, 226, 192, 0.28) 0%, rgba(248, 226, 192, 0.12) 60%, transparent 90%),
-    linear-gradient(
-      180deg,
-      rgba(232, 184, 107, 0) 0%,
-      rgba(232, 184, 107, 0.2) var(--light-band-start),
-      rgba(255, 240, 220, 0.35) var(--light-band-mid),
-      rgba(126, 150, 255, 0.2) var(--light-band-end),
-      rgba(126, 150, 255, 0) 100%
-    );
-  mix-blend-mode: screen;
-  filter: blur(22px) saturate(118%);
-  opacity: var(--light-strength);
-  transition:
-    background-position 0.45s var(--ease-out-lux),
-    background-size 0.45s var(--ease-out-lux),
-    opacity 0.3s ease;
-  will-change: background-position, background-size, opacity;
-}
-
-.guided-light__beam::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle calc(var(--light-radius) * 0.55) at 50% var(--light-center), rgba(255, 255, 255, 0.24) 0%, rgba(232, 184, 107, 0.35) 40%, rgba(126, 150, 255, 0.24) 68%, transparent 100%);
-  mix-blend-mode: screen;
-  filter: blur(14px);
-  opacity: calc(var(--light-strength) * 0.85);
-  transition:
-    background-position 0.45s var(--ease-out-lux),
-    background-size 0.45s var(--ease-out-lux),
-    opacity 0.3s ease;
-}
-
-.guided-light__link {
-  top: var(--link-top);
-  height: var(--link-height);
-  left: 50%;
-  transform: translateX(-50%);
-  width: clamp(120px, 24vw, 360px);
-  border-radius: 999px;
-  opacity: var(--link-opacity);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(245, 235, 218, 0) 0%,
-      rgba(245, 235, 218, 0.22) 18%,
-      rgba(232, 184, 107, 0.6) 45%,
-      rgba(116, 142, 255, 0.58) 55%,
-      rgba(245, 235, 218, 0.18) 82%,
-      rgba(245, 235, 218, 0) 100%
-    );
-  filter: blur(28px) saturate(130%);
-  mix-blend-mode: screen;
-  transition:
-    opacity 0.35s var(--ease-out-lux),
-    top 0.45s var(--ease-out-lux),
-    height 0.45s var(--ease-out-lux);
-}
-
-.guided-light__link::after {
-  content: '';
-  position: absolute;
-  top: 12%;
-  bottom: 12%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 3px;
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 249, 240, 0.42) 24%,
-    rgba(232, 184, 107, 0.65) 50%,
-    rgba(116, 142, 255, 0.55) 68%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  opacity: 0.55;
-  filter: blur(1px);
-}
 
 .scroll-progress {
   position: fixed;
@@ -247,22 +116,9 @@ body::after {
   transform-origin: left;
   transform: scaleX(var(--progress-value, 0));
   background: linear-gradient(90deg, rgba(40, 124, 255, 0.1), rgba(232, 184, 107, 0.9), rgba(255, 255, 255, 0.7));
-  box-shadow: 0 0 22px rgba(232, 184, 107, 0.35);
   transition: transform 0.25s var(--ease-out-lux);
 }
 
-.scroll-progress__glow {
-  position: absolute;
-  top: -10px;
-  bottom: -10px;
-  width: 140px;
-  right: -70px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.85), rgba(232, 184, 107, 0.45) 55%, transparent 80%);
-  filter: blur(18px);
-  opacity: clamp(0.35, var(--progress-value, 0), 1);
-  transform: translateX(calc((var(--progress-value, 0) * 100%) - 50%));
-  transition: transform 0.25s var(--ease-out-lux), opacity 0.25s var(--ease-out-lux);
-}
 
 a {
   color: inherit;
@@ -352,10 +208,7 @@ button {
   }
 
   .card--carbon::before,
-  .card__edge-light,
-  .section__connector,
-  .scroll-progress__bar,
-  .scroll-progress__glow {
+  .scroll-progress__bar {
     animation: none !important;
     transition: none !important;
   }

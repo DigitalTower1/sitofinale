@@ -60,8 +60,7 @@ export function CtaSection() {
     >
       <div className="cta__aurora" aria-hidden />
       <div className="cta__content card--carbon">
-        <span className="card__edge-light" aria-hidden />
-        <h2 id="cta-heading">Prenota la call strategica e proiettiamoci verso le 7 figures.</h2>
+          <h2 id="cta-heading">Prenota la call strategica e proiettiamoci verso le 7 figures.</h2>
         <p>
           Allineiamo visione, dati e craft cinematografico per trasformare la tua idea nel prossimo brand iconico. Dal primo
           moodboard al monitoraggio continuo dei KPI condivisi.

@@ -69,23 +69,6 @@ export function ServicesSection() {
           }
         );
 
-        const halo = card.querySelector<HTMLElement>('.service-card__halo');
-        if (halo) {
-          gsap.fromTo(
-            halo,
-            { opacity: 0.35, scale: 0.95 },
-            {
-              opacity: 0.75,
-              scale: 1.1,
-              duration: 5,
-              ease: 'sine.inOut',
-              repeat: -1,
-              yoyo: true,
-              delay: index * 0.12
-            }
-          );
-        }
-
         const texture = card.querySelector<HTMLElement>('.service-card__texture');
         if (texture) {
           gsap.to(texture, {
@@ -103,7 +86,6 @@ export function ServicesSection() {
     const cards = container.current.querySelectorAll<HTMLElement>('.service-card');
     cards.forEach((card) => {
       gsap.set(card, { transformPerspective: 800 });
-      const halo = card.querySelector<HTMLElement>('.service-card__halo');
       const texture = card.querySelector<HTMLElement>('.service-card__texture');
       const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
       const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
@@ -114,15 +96,6 @@ export function ServicesSection() {
         const relY = (event.clientY - rect.top) / rect.height;
         rotateY((relX - 0.5) * 16);
         rotateX(-(relY - 0.5) * 12);
-
-        if (halo) {
-          gsap.to(halo, {
-            x: (relX - 0.5) * 50,
-            y: (relY - 0.5) * 40,
-            duration: 0.5,
-            ease: 'power3.out'
-          });
-        }
 
         if (texture) {
           gsap.to(texture, {
@@ -136,9 +109,6 @@ export function ServicesSection() {
       const reset = () => {
         rotateX(0);
         rotateY(0);
-        if (halo) {
-          gsap.to(halo, { x: 0, y: 0, duration: 0.6, ease: 'power3.out' });
-        }
         if (texture) {
           gsap.to(texture, {
             backgroundPosition: '50% 50%',
@@ -186,8 +156,6 @@ export function ServicesSection() {
             className={clsx('service-card', 'card--carbon')}
             data-tone={service.tone}
           >
-            <span className="card__edge-light" aria-hidden />
-            <div className="service-card__halo" aria-hidden />
             <div className="service-card__texture" aria-hidden />
             <p className="service-card__tagline">{service.tagline}</p>
             <h3>{service.title}</h3>

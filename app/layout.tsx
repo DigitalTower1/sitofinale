@@ -11,7 +11,6 @@ import { Footer } from '../components/Footer';
 import { CursorAura } from '../components/CursorAura';
 import { MotionReduceBoundary } from '../components/MotionReduceBoundary';
 import { MarbleBackground } from '../components/MarbleBackground';
-import { GuidedLight } from '../components/GuidedLight';
 import { ScrollProgressBar } from '../components/ScrollProgressBar';
 
 const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-display-active' });
@@ -49,7 +48,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             Salta al contenuto principale
           </a>
           <MotionReduceBoundary>
-            <GuidedLight />
             <ScrollProgressBar />
             <Navigation />
             <main id="main" aria-label="Contenuto principale">

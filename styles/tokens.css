@@ -49,8 +49,8 @@
   --blur-heavy: 28px;
 
   /* Shadows */
-  --shadow-soft: 0 20px 40px rgba(0, 0, 0, 0.25);
-  --shadow-elevated: 0 50px 120px rgba(0, 0, 0, 0.45);
+  --shadow-soft: none;
+  --shadow-elevated: none;
 
   /* Motion timings */
   --t-instant: 120ms;

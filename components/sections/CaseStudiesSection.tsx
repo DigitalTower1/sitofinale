@@ -236,7 +236,6 @@ export function CaseStudiesSection() {
         </p>
       </div>
       <article className="cases__hero card--carbon">
-        <span className="card__edge-light" aria-hidden />
         <div className="cases__hero-visual" aria-hidden>
           <div className="cases__hero-gradient" />
           <div className="cases__hero-noise" />
@@ -272,7 +271,6 @@ export function CaseStudiesSection() {
             href={`/case-studies/${caseStudy.slug}`}
             className="case-card card--carbon"
           >
-            <span className="card__edge-light" aria-hidden />
             <div className="case-card__frame">
               <div className="case-card__flare" aria-hidden />
               <div className="case-card__image" aria-hidden />

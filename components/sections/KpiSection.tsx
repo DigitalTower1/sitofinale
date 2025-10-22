@@ -82,23 +82,6 @@ export function KpiSection() {
 
         const counter = { value: 0 };
 
-        const glow = card.querySelector<HTMLElement>('.kpi__glow');
-        if (glow) {
-          gsap.fromTo(
-            glow,
-            { opacity: 0.3, scale: 0.9 },
-            {
-              opacity: 0.7,
-              scale: 1.05,
-              filter: 'blur(36px)',
-              duration: 4.5,
-              repeat: -1,
-              yoyo: true,
-              ease: 'sine.inOut'
-            }
-          );
-        }
-
         const orbit = card.querySelector<HTMLElement>('.kpi__orbit');
         if (orbit) {
           gsap.fromTo(
@@ -207,8 +190,6 @@ export function KpiSection() {
             data-value={metric.value}
             data-suffix={metric.suffix}
           >
-            <span className="card__edge-light" aria-hidden />
-            <div className="kpi__glow" aria-hidden />
             <span className="kpi__orbit" aria-hidden />
             <h3>{metric.label}</h3>
             <span className="kpi__value" aria-live="polite">

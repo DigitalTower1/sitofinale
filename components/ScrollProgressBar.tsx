@@ -33,9 +33,7 @@ export function ScrollProgressBar() {
   return (
     <div className="scroll-progress" aria-hidden="true">
       <div className="scroll-progress__track">
-        <div ref={barRef} className="scroll-progress__bar">
-          <span className="scroll-progress__glow" />
-        </div>
+        <div ref={barRef} className="scroll-progress__bar" />
       </div>
     </div>
   );

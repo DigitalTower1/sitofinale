@@ -3,12 +3,16 @@ import type { ReactNode } from 'react';
 import { Playfair_Display, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Providers } from '../components/Providers';
+import { ThemeScript } from '../components/ThemeScript';
 import { defaultMetadata } from '../lib/seo/metadata';
 import { organizationSchema, serviceSchema, kpiDatasetSchema } from '../lib/seo/schema';
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { CursorAura } from '../components/CursorAura';
 import { MotionReduceBoundary } from '../components/MotionReduceBoundary';
+import { MarbleBackground } from '../components/MarbleBackground';
+import { GuidedLight } from '../components/GuidedLight';
+import { ScrollProgressBar } from '../components/ScrollProgressBar';
 
 const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-display-active' });
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], display: 'swap', variable: '--font-sans-active' });
@@ -31,13 +35,22 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="it" className={`${playfair.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
-      <body>
+    <html
+      lang="it"
+      data-theme="dark"
+      className={`${playfair.variable} ${spaceGrotesk.variable}`}
+      suppressHydrationWarning
+    >
+      <body data-theme="dark" suppressHydrationWarning>
+        <ThemeScript />
+        <MarbleBackground />
         <Providers>
           <a href="#main" className="skip-link">
             Salta al contenuto principale
           </a>
           <MotionReduceBoundary>
+            <GuidedLight />
+            <ScrollProgressBar />
             <Navigation />
             <main id="main" aria-label="Contenuto principale">
               {children}

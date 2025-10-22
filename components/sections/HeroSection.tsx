@@ -15,6 +15,8 @@ export function HeroSection() {
 
   useEffect(() => {
     if (reducedMotion || !container.current) return;
+    const heroEl = container.current;
+    const cleanups: Array<() => void> = [];
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -56,13 +58,86 @@ export function HeroSection() {
           });
         }
       });
+
+      gsap.to('.hero__visual-aura', {
+        opacity: 0.75,
+        filter: 'blur(60px)',
+        duration: 4.8,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1
+      });
+
+      gsap.to('.hero__visual-reflection', {
+        backgroundPosition: '120% 40%',
+        duration: 12,
+        ease: 'none',
+        repeat: -1
+      });
+
+      gsap.to('.hero__visual', {
+        boxShadow: '0 60px 160px rgba(232, 184, 107, 0.35)',
+        duration: 6,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
     }, container);
 
-    return () => ctx.revert();
+    const visual = heroEl.querySelector<HTMLElement>('.hero__visual');
+    const aura = heroEl.querySelector<HTMLElement>('.hero__visual-aura');
+
+    if (visual) {
+      gsap.set(visual, { transformPerspective: 900 });
+      const rotateX = gsap.quickTo(visual, 'rotationX', { duration: 0.6, ease: 'power3.out' });
+      const rotateY = gsap.quickTo(visual, 'rotationY', { duration: 0.6, ease: 'power3.out' });
+
+      const handleMove = (event: PointerEvent) => {
+        const rect = visual.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        rotateY((relX - 0.5) * 16);
+        rotateX(-(relY - 0.5) * 12);
+
+        if (aura) {
+          gsap.to(aura, {
+            x: (relX - 0.5) * 60,
+            y: (relY - 0.5) * 50,
+            duration: 0.6,
+            ease: 'power3.out'
+          });
+        }
+      };
+
+      const resetTilt = () => {
+        rotateX(0);
+        rotateY(0);
+        if (aura) {
+          gsap.to(aura, { x: 0, y: 0, duration: 0.8, ease: 'power3.out' });
+        }
+      };
+
+      heroEl.addEventListener('pointermove', handleMove);
+      heroEl.addEventListener('pointerleave', resetTilt);
+      cleanups.push(() => {
+        heroEl.removeEventListener('pointermove', handleMove);
+        heroEl.removeEventListener('pointerleave', resetTilt);
+      });
+    }
+
+    return () => {
+      cleanups.forEach((dispose) => dispose());
+      ctx.revert();
+    };
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section hero" aria-labelledby="hero-heading">
+    <section
+      ref={container}
+      className="section hero"
+      aria-labelledby="hero-heading"
+      data-guided-section="hero"
+    >
       <div className="hero__content">
         <p className="hero__eyebrow">Luxury Marketing Agency</p>
         <h1 id="hero-heading" className="hero__heading">
@@ -82,6 +157,7 @@ export function HeroSection() {
         </div>
       </div>
       <Hero3D />
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

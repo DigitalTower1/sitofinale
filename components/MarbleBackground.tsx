@@ -43,14 +43,14 @@ export function MarbleBackground() {
       root.style.setProperty('--pointer-y', `${clientY}px`);
 
       if (fieldRef.current) {
-        const parallaxX = (normalizedX - 0.5) * 90;
-        const parallaxY = (normalizedY - 0.5) * 90;
+        const parallaxX = (normalizedX - 0.5) * 40;
+        const parallaxY = (normalizedY - 0.5) * 40;
         fieldRef.current.style.setProperty('--marble-cell-shift-x', `${parallaxX}px`);
         fieldRef.current.style.setProperty('--marble-cell-shift-y', `${parallaxY}px`);
       }
 
-      targetX = (normalizedX - 0.5) * 70;
-      targetY = (normalizedY - 0.5) * 70;
+      targetX = (normalizedX - 0.5) * 32;
+      targetY = (normalizedY - 0.5) * 32;
 
       if (!raf) {
         raf = requestAnimationFrame(commit);

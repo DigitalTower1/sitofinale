@@ -22,6 +22,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body::before {
   content: '';
   position: fixed;
@@ -29,9 +33,9 @@ body::before {
   pointer-events: none;
   background-image: radial-gradient(circle at top left, rgba(220, 194, 138, 0.12), transparent 45%),
     radial-gradient(circle at bottom right, rgba(232, 184, 107, 0.15), transparent 50%);
-  opacity: 0.9;
+  opacity: 0.45;
   mix-blend-mode: screen;
-  z-index: calc(var(--z-overlay) - 1);
+  z-index: -3;
   transform: translate3d(0, 0, 0);
   animation: body-aurora 18s var(--ease-in-out-lux) infinite alternate;
 }
@@ -44,7 +48,7 @@ body::after {
   background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Cfilter id="n" x="0" y="0" width="100%25" height="100%25"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="400" height="400" filter="url(%23n)" opacity="0.35"/%3E%3C/svg%3E');
   mix-blend-mode: soft-light;
   opacity: var(--grain-opacity);
-  z-index: calc(var(--z-overlay) - 2);
+  z-index: -4;
   background-size: 520px 520px;
   animation: grain-shift 12s steps(2) infinite;
 }
@@ -53,8 +57,8 @@ body::after {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: -2;
-  opacity: 0.45;
+  z-index: -5;
+  opacity: 0.32;
   overflow: hidden;
   contain: paint;
 }
@@ -80,7 +84,7 @@ body::after {
 }
 
 .marble-field__cells {
-  --marble-cell-opacity: clamp(0.25, calc(var(--pointer-norm-y, 0.5) + 0.15), 0.65);
+  --marble-cell-opacity: clamp(0.18, calc(var(--pointer-norm-y, 0.5) + 0.1), 0.48);
   background-image:
     radial-gradient(circle at calc(var(--pointer-norm-x, 0.5) * 100%) calc(var(--pointer-norm-y, 0.5) * 100%), rgba(255, 255, 255, 0.28), rgba(232, 184, 107, 0) 58%),
     conic-gradient(from 90deg at 50% 50%, rgba(245, 241, 232, 0.1), rgba(220, 194, 138, 0.12), rgba(18, 18, 20, 0.65), rgba(245, 241, 232, 0.1)),
@@ -91,9 +95,9 @@ body::after {
   mix-blend-mode: screen;
   opacity: var(--marble-cell-opacity);
   transform: translate3d(var(--marble-cell-shift-x, 0), var(--marble-cell-shift-y, 0), 0);
-  animation: marble-cell-flow 24s linear infinite alternate;
-  mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 85%);
-  backdrop-filter: blur(18px);
+  animation: marble-cell-flow 30s linear infinite alternate;
+  mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.45) 58%, transparent 90%);
+  backdrop-filter: blur(16px);
 }
 
 @keyframes marble-vein-pulse {

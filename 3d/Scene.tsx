@@ -14,69 +14,120 @@ const GLASS = new THREE.Color('#1b1e24');
 
 function Tower() {
   const group = useRef<THREE.Group>(null);
-  const rings = useMemo(() => {
-    return new Array(12).fill(0).map((_, index) => ({
-      radius: 0.6 + index * 0.08,
-      height: 0.15,
-      y: index * 0.22,
-      tilt: (index % 2 === 0 ? 1 : -1) * 0.08
+  const core = useRef<THREE.Mesh>(null);
+  const halo = useRef<THREE.Mesh>(null);
+
+  const helixCurve = useMemo(() => {
+    const points = [] as THREE.Vector3[];
+    const height = 3.2;
+    for (let i = 0; i <= 160; i += 1) {
+      const t = i / 160;
+      const angle = t * Math.PI * 5;
+      const radius = 0.42 + Math.sin(t * Math.PI) * 0.12 + t * 0.24;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      const y = t * height - height / 2;
+      points.push(new THREE.Vector3(x, y, z));
+    }
+    return new THREE.CatmullRomCurve3(points);
+  }, []);
+
+  const ringBands = useMemo(() => {
+    return new Array(7).fill(0).map((_, index) => ({
+      radius: 0.9 + index * 0.18,
+      y: -1.3 + index * 0.52,
+      thickness: 0.015 + index * 0.006
     }));
   }, []);
 
   useFrame((state) => {
     if (!group.current) return;
     const t = state.clock.getElapsedTime();
-    group.current.rotation.y = Math.sin(t * 0.2) * 0.25;
-    group.current.rotation.x = Math.sin(t * 0.15) * 0.1;
+    group.current.rotation.y = t * 0.18;
+    group.current.rotation.x = Math.sin(t * 0.12) * 0.08;
+
+    if (core.current) {
+      const scale = 1 + Math.sin(t * 1.8) * 0.03;
+      core.current.scale.set(scale, scale, scale);
+    }
+
+    if (halo.current) {
+      halo.current.position.y = Math.sin(t * 1.4) * 0.18 + 0.6;
+      halo.current.rotation.z = t * 0.5;
+    }
   });
 
   return (
-    <group ref={group} position={[0, -1.2, 0]}>
-      {rings.map((ring, index) => (
-        <mesh key={index} rotation={[0, 0, ring.tilt]} position={[0, ring.y, 0]}>
-          <cylinderGeometry args={[ring.radius, ring.radius * 0.96, ring.height, 64, 1, true]} />
-          <meshStandardMaterial
-            metalness={0.9}
-            roughness={0.28}
-            envMapIntensity={1.1}
-            color={CHAMPAGNE}
-            emissive={CHAMPAGNE.clone().multiplyScalar(0.1)}
-          />
-        </mesh>
-      ))}
-      <mesh position={[0, rings[rings.length - 1].y + 0.5, 0]}>
-        <sphereGeometry args={[0.4, 64, 64]} />
+    <group ref={group} position={[0, -1.1, 0]}>
+      <mesh ref={core} position={[0, 0.45, 0]}>
+        <cylinderGeometry args={[0.46, 0.38, 3.4, 64, 1, true]} />
         <meshPhysicalMaterial
-          color={CHAMPAGNE}
-          metalness={0.9}
+          color={GLASS}
+          metalness={0.25}
           roughness={0.18}
-          clearcoat={0.5}
-          clearcoatRoughness={0.1}
+          transmission={0.92}
+          thickness={0.85}
+          clearcoat={0.65}
+          clearcoatRoughness={0.08}
+          envMapIntensity={1.25}
+          opacity={0.96}
+          transparent
         />
       </mesh>
-      <Float speed={1} rotationIntensity={0.15} floatIntensity={0.6}>
-        <mesh position={[0, rings[rings.length - 1].y + 1.2, 0]}>
-          <torusGeometry args={[0.8, 0.025, 16, 128]} />
-          <meshStandardMaterial
-            color={CHAMPAGNE}
-            metalness={1}
-            roughness={0.15}
-            emissive={CHAMPAGNE.clone().multiplyScalar(0.2)}
-          />
+      <mesh position={[0, 0.45, 0]}>
+        <tubeGeometry args={[helixCurve, 420, 0.065, 32, false]} />
+        <meshStandardMaterial
+          color={CHAMPAGNE}
+          metalness={1}
+          roughness={0.22}
+          envMapIntensity={1.35}
+          emissive={CHAMPAGNE.clone().multiplyScalar(0.18)}
+          emissiveIntensity={0.9}
+        />
+      </mesh>
+      {ringBands.map((band, index) => (
+        <Float key={index} speed={0.75 + index * 0.12} rotationIntensity={0.18} floatIntensity={0.3}>
+          <mesh
+            position={[0, band.y + 0.6, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <torusGeometry args={[band.radius, band.thickness, 32, 256]} />
+            <meshStandardMaterial
+              color={CHAMPAGNE}
+              metalness={0.9}
+              roughness={0.18}
+              envMapIntensity={1.1}
+              emissive={CHAMPAGNE.clone().multiplyScalar(0.12)}
+            />
+          </mesh>
+        </Float>
+      ))}
+      <Float speed={1.4} rotationIntensity={0.25} floatIntensity={0.6}>
+        <mesh ref={halo} position={[0, 0.6, 0]}>
+          <ringGeometry args={[0.6, 1.4, 64, 1]} />
+          <meshBasicMaterial color={CHAMPAGNE} transparent opacity={0.28} />
         </mesh>
       </Float>
-      <group position={[0, -0.2, 0]}>
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[1.1, 3.2, 64]} />
-          <meshStandardMaterial
-            color={GLASS}
-            metalness={0.4}
-            roughness={0.55}
-            transparent
-            opacity={0.5}
-          />
-        </mesh>
-      </group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.4, 0]}>
+        <ringGeometry args={[1.2, 3.4, 64]} />
+        <meshStandardMaterial
+          color={GLASS}
+          metalness={0.35}
+          roughness={0.6}
+          transparent
+          opacity={0.55}
+        />
+      </mesh>
+      <mesh position={[0, 2.35, 0]}>
+        <octahedronGeometry args={[0.35, 0]} />
+        <meshStandardMaterial
+          color={CHAMPAGNE}
+          metalness={1}
+          roughness={0.2}
+          envMapIntensity={1.4}
+          emissive={CHAMPAGNE.clone().multiplyScalar(0.25)}
+        />
+      </mesh>
     </group>
   );
 }
@@ -173,9 +224,9 @@ function SceneContent({ onContextLost, onContextRestored }: SceneContentProps) {
       <fog attach="fog" args={[0x050505, 8, 24]} />
       <PerspectiveCamera makeDefault fov={42} position={[0, 1.6, 6]} />
       <OrbitControls enablePan={false} enableZoom={false} enableRotate={false} />
-      <ambientLight intensity={0.22} />
-      <directionalLight position={[4, 6, 2]} intensity={1.8} color={0xffe2b2} castShadow />
-      <spotLight position={[-3, 3, 4]} angle={Math.PI / 5} intensity={2} color={0xf5f1e8} penumbra={0.6} />
+      <ambientLight intensity={0.28} />
+      <directionalLight position={[4, 6, 2]} intensity={1.3} color={0xffe2b2} castShadow />
+      <spotLight position={[-3, 3, 4]} angle={Math.PI / 5} intensity={1.1} color={0xf5f1e8} penumbra={0.65} />
       <Environment preset="sunset" background={false} />
       <group>
         <Tower />
@@ -191,7 +242,7 @@ function SceneContent({ onContextLost, onContextRestored }: SceneContentProps) {
         </mesh>
       </group>
       <EffectComposer multisampling={1}>
-        {isFeatureEnabled('ENABLE_BLOOM') && <Bloom intensity={0.85} luminanceThreshold={0.4} luminanceSmoothing={0.12} />}
+        {isFeatureEnabled('ENABLE_BLOOM') && <Bloom intensity={0.55} luminanceThreshold={0.4} luminanceSmoothing={0.12} />}
         <ToneMapping adaptive={false} mode={ToneMappingMode.ACES_FILMIC} />
         <Vignette eskil={false} offset={0.3} darkness={0.6} />
       </EffectComposer>

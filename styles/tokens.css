@@ -86,7 +86,12 @@
   --grain-scale: 1.5;
 }
 
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 [data-theme='light'] {
+  color-scheme: light;
   --color-lux-black: #f5f1e8;
   --color-obsidian: #f5f1e8;
   --color-smoked-glass: rgba(245, 241, 232, 0.86);
@@ -97,6 +102,7 @@
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme='dark']) {
+    color-scheme: light;
     --color-lux-black: #f5f1e8;
     --color-obsidian: #f5f1e8;
     --color-smoked-glass: rgba(245, 241, 232, 0.86);

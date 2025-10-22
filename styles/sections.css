@@ -3,6 +3,189 @@
   margin: var(--space-4xl) auto;
   max-width: calc(var(--max-width) + var(--space-3xl) * 2);
   padding: 0 var(--space-2xl);
+  --section-connector-length: clamp(140px, 18vw, 220px);
+}
+
+.card--carbon {
+  position: relative;
+  overflow: hidden;
+  background: rgba(12, 12, 14, 0.9);
+  border: 1px solid rgba(232, 184, 107, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(5, 5, 5, 0.45), 0 22px 70px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px) saturate(150%);
+  isolation: isolate;
+}
+
+.card--carbon::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 2px, rgba(10, 10, 10, 0.7) 2px 4px),
+    repeating-linear-gradient(-45deg, rgba(232, 184, 107, 0.08) 0 2px, rgba(5, 5, 5, 0.6) 2px 4px);
+  background-size: 220px 220px;
+  opacity: 0.32;
+  mix-blend-mode: screen;
+  animation: carbon-weave 22s linear infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card--carbon:hover {
+  border-color: rgba(232, 184, 107, 0.45);
+}
+
+.card__edge-light {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(232, 184, 107, 0) 0%, rgba(232, 184, 107, 0.85) 45%, rgba(118, 134, 255, 0) 100%);
+  background-size: 220% 220%;
+  opacity: 0.85;
+  mix-blend-mode: screen;
+  padding: 2px;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  animation: edge-light-scan 7s linear infinite;
+  z-index: 3;
+}
+
+.card--carbon > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card--carbon > .card__edge-light {
+  z-index: 4;
+}
+
+.section__connector {
+  position: absolute;
+  left: 50%;
+  bottom: calc(-0.5 * var(--section-connector-length));
+  transform: translateX(-50%);
+  width: 4px;
+  height: var(--section-connector-length);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, rgba(232, 184, 107, 0.85) 0%, rgba(120, 152, 255, 0.4) 60%, transparent 100%);
+  filter: drop-shadow(0 0 22px rgba(232, 184, 107, 0.45));
+  pointer-events: none;
+  mix-blend-mode: screen;
+  overflow: hidden;
+  animation: section-connector-pulse 6s ease-in-out infinite;
+  z-index: 2;
+}
+
+.section__connector::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.9) 50%, transparent 100%);
+  background-size: 100% 200%;
+  animation: connector-flow 3.5s linear infinite;
+}
+
+@keyframes carbon-weave {
+  0% {
+    transform: translate3d(-10%, -6%, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(8%, 10%, 0) rotate(2deg);
+  }
+
+  100% {
+    transform: translate3d(-6%, 4%, 0) rotate(-1deg);
+  }
+}
+
+@keyframes edge-light-scan {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes section-connector-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes connector-flow {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 0% 200%;
+  }
+}
+
+.card--carbon {
+  position: relative;
+  overflow: hidden;
+  background: rgba(12, 12, 14, 0.9);
+  border: 1px solid rgba(232, 184, 107, 0.22);
+  backdrop-filter: blur(18px) saturate(150%);
+  isolation: isolate;
+}
+
+.card--carbon::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 2px, rgba(10, 10, 10, 0.7) 2px 4px),
+    repeating-linear-gradient(-45deg, rgba(232, 184, 107, 0.08) 0 2px, rgba(5, 5, 5, 0.6) 2px 4px);
+  background-size: 220px 220px;
+  opacity: 0.32;
+  mix-blend-mode: screen;
+  animation: carbon-weave 22s linear infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card--carbon:hover {
+  border-color: rgba(232, 184, 107, 0.45);
+}
+
+
+.card--carbon > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+
+
+@keyframes carbon-weave {
+  0% {
+    transform: translate3d(-10%, -6%, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(8%, 10%, 0) rotate(2deg);
+  }
+
+  100% {
+    transform: translate3d(-6%, 4%, 0) rotate(-1deg);
+  }
 }
 .card--carbon {
   --card-pointer-x: calc(var(--pointer-norm-x, 0.5) * 100%);
@@ -485,6 +668,7 @@
 @media (max-width: 640px) {
   .section {
     padding: 0 var(--space-lg);
+    --section-connector-length: 110px;
   }
 
   .hero__cta-group {

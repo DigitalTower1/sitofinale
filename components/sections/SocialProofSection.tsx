@@ -157,7 +157,12 @@ export function SocialProofSection() {
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section social-proof" aria-labelledby="social-proof-heading">
+    <section
+      ref={container}
+      className="section social-proof"
+      aria-labelledby="social-proof-heading"
+      data-guided-section="alliances"
+    >
       <div className="section__header">
         <p className="section__eyebrow">Alliances</p>
         <h2 id="social-proof-heading" className="section__title">
@@ -173,10 +178,11 @@ export function SocialProofSection() {
           <article
             key={partner.name}
             role="listitem"
-            className="social-proof__partner"
+            className="social-proof__partner card--carbon"
             data-tone={partner.tone}
             aria-label={`${partner.name} — ${partner.description}`}
           >
+            <span className="card__edge-light" aria-hidden />
             <div className="social-proof__halo" aria-hidden />
             <div className="social-proof__texture" aria-hidden />
             <p className="social-proof__since">{partner.since}</p>
@@ -185,7 +191,8 @@ export function SocialProofSection() {
           </article>
         ))}
       </div>
-      <figure className="social-proof__quote-block">
+      <figure className="social-proof__quote-block card--carbon">
+        <span className="card__edge-light" aria-hidden />
         <div className="social-proof__quote-glow" aria-hidden />
         <blockquote>{testimonial.quote}</blockquote>
         <figcaption>
@@ -193,6 +200,7 @@ export function SocialProofSection() {
           <span>{testimonial.role}</span>
         </figcaption>
       </figure>
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

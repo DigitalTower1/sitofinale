@@ -132,7 +132,12 @@ export function HeroSection() {
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section hero" aria-labelledby="hero-heading">
+    <section
+      ref={container}
+      className="section hero"
+      aria-labelledby="hero-heading"
+      data-guided-section="hero"
+    >
       <div className="hero__content">
         <p className="hero__eyebrow">Luxury Marketing Agency</p>
         <h1 id="hero-heading" className="hero__heading">
@@ -152,6 +157,7 @@ export function HeroSection() {
         </div>
       </div>
       <Hero3D />
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

@@ -52,9 +52,15 @@ export function CtaSection() {
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section cta" aria-labelledby="cta-heading">
+    <section
+      ref={container}
+      className="section cta"
+      aria-labelledby="cta-heading"
+      data-guided-section="cta"
+    >
       <div className="cta__aurora" aria-hidden />
-      <div className="cta__content">
+      <div className="cta__content card--carbon">
+        <span className="card__edge-light" aria-hidden />
         <h2 id="cta-heading">Prenota la call strategica e proiettiamoci verso le 7 figures.</h2>
         <p>
           Allineiamo visione, dati e craft cinematografico per trasformare la tua idea nel prossimo brand iconico. Dal primo

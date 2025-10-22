@@ -182,7 +182,12 @@ export function KpiSection() {
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section kpi" aria-labelledby="kpi-heading">
+    <section
+      ref={container}
+      className="section kpi"
+      aria-labelledby="kpi-heading"
+      data-guided-section="kpi"
+    >
       <div className="section__header">
         <p className="section__eyebrow">KPI Dashboard</p>
         <h2 id="kpi-heading" className="section__title">
@@ -198,10 +203,11 @@ export function KpiSection() {
           <article
             key={metric.label}
             role="listitem"
-            className="kpi__card"
+            className="kpi__card card--carbon"
             data-value={metric.value}
             data-suffix={metric.suffix}
           >
+            <span className="card__edge-light" aria-hidden />
             <div className="kpi__glow" aria-hidden />
             <span className="kpi__orbit" aria-hidden />
             <h3>{metric.label}</h3>
@@ -214,6 +220,7 @@ export function KpiSection() {
           </article>
         ))}
       </div>
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

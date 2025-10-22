@@ -75,7 +75,12 @@ export function ProcessSection() {
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section process" aria-labelledby="process-heading">
+    <section
+      ref={container}
+      className="section process"
+      aria-labelledby="process-heading"
+      data-guided-section="process"
+    >
       <div className="section__header">
         <p className="section__eyebrow">Metodo</p>
         <h2 id="process-heading" className="section__title">
@@ -87,13 +92,15 @@ export function ProcessSection() {
         <div className="process__line" aria-hidden />
         <ul>
           {steps.map((step) => (
-            <li key={step.title}>
+            <li key={step.title} className="process__step card--carbon">
+              <span className="card__edge-light" aria-hidden />
               <h3>{step.title}</h3>
               <p>{step.description}</p>
             </li>
           ))}
         </ul>
       </div>
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

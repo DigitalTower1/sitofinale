@@ -219,7 +219,12 @@ export function CaseStudiesSection() {
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section cases" aria-labelledby="cases-heading">
+    <section
+      ref={container}
+      className="section cases"
+      aria-labelledby="cases-heading"
+      data-guided-section="case-studies"
+    >
       <div className="section__header">
         <p className="section__eyebrow">Case Studies</p>
         <h2 id="cases-heading" className="section__title">
@@ -230,7 +235,8 @@ export function CaseStudiesSection() {
           performance.
         </p>
       </div>
-      <article className="cases__hero">
+      <article className="cases__hero card--carbon">
+        <span className="card__edge-light" aria-hidden />
         <div className="cases__hero-visual" aria-hidden>
           <div className="cases__hero-gradient" />
           <div className="cases__hero-noise" />
@@ -261,7 +267,12 @@ export function CaseStudiesSection() {
       </article>
       <div className="cases__supporting">
         {supportingCases.map((caseStudy) => (
-          <Link key={caseStudy.slug} href={`/case-studies/${caseStudy.slug}`} className="case-card">
+          <Link
+            key={caseStudy.slug}
+            href={`/case-studies/${caseStudy.slug}`}
+            className="case-card card--carbon"
+          >
+            <span className="card__edge-light" aria-hidden />
             <div className="case-card__frame">
               <div className="case-card__flare" aria-hidden />
               <div className="case-card__image" aria-hidden />
@@ -278,6 +289,7 @@ export function CaseStudiesSection() {
           </Link>
         ))}
       </div>
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

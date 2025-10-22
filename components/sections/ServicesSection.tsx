@@ -163,7 +163,12 @@ export function ServicesSection() {
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section services" aria-labelledby="services-heading">
+    <section
+      ref={container}
+      className="section services"
+      aria-labelledby="services-heading"
+      data-guided-section="services"
+    >
       <div className="section__header">
         <p className="section__eyebrow">Servizi Signature</p>
         <h2 id="services-heading" className="section__title">
@@ -175,7 +180,13 @@ export function ServicesSection() {
       </div>
       <div className="services__grid">
         {services.map((service) => (
-          <article key={service.id} id={service.id} className={clsx('service-card')} data-tone={service.tone}>
+          <article
+            key={service.id}
+            id={service.id}
+            className={clsx('service-card', 'card--carbon')}
+            data-tone={service.tone}
+          >
+            <span className="card__edge-light" aria-hidden />
             <div className="service-card__halo" aria-hidden />
             <div className="service-card__texture" aria-hidden />
             <p className="service-card__tagline">{service.tagline}</p>
@@ -187,6 +198,7 @@ export function ServicesSection() {
           </article>
         ))}
       </div>
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

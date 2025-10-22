@@ -11,8 +11,8 @@
   --color-muted: rgba(215, 207, 190, 0.42);
 
   /* Typography */
-  --font-display: "Playfair Display", "Marcellus", serif;
-  --font-sans: "Space Grotesk", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-display-active, "Playfair Display", "Marcellus", serif);
+  --font-sans: var(--font-sans-active, "Space Grotesk", "Inter", "Helvetica Neue", Arial, sans-serif);
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
 
   /* Fluid type scale */

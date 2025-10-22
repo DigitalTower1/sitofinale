@@ -4,7 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Float, Html, OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, ToneMapping, SSR } from '@react-three/postprocessing';
 import { BlendFunction, ToneMappingMode } from 'postprocessing';
-import { Suspense, useEffect, useMemo, useRef } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useMotionPreferences } from '../hooks/useMotionPreferences';
 import { isFeatureEnabled } from '../lib/featureFlags';
@@ -112,7 +112,12 @@ function Particles() {
   );
 }
 
-function SceneContent() {
+type SceneContentProps = {
+  onContextLost: () => void;
+  onContextRestored: () => void;
+};
+
+function SceneContent({ onContextLost, onContextRestored }: SceneContentProps) {
   const { gl } = useThree();
   const { reducedMotion } = useMotionPreferences();
 
@@ -120,6 +125,47 @@ function SceneContent() {
     gl.toneMapping = THREE.ACESFilmicToneMapping;
     gl.outputColorSpace = THREE.SRGBColorSpace;
   }, [gl]);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const originalCopyFramebufferToTexture = gl.copyFramebufferToTexture.bind(gl);
+
+    gl.copyFramebufferToTexture = ((...rawArgs: unknown[]) => {
+      const [first, second, third] = rawArgs;
+      if (first instanceof THREE.Vector2 && second instanceof THREE.Texture) {
+        return originalCopyFramebufferToTexture(second, first, third as number | undefined);
+      }
+      return originalCopyFramebufferToTexture(
+        ...(rawArgs as Parameters<typeof originalCopyFramebufferToTexture>)
+      );
+    }) as typeof gl.copyFramebufferToTexture;
+
+    const webglContext = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+
+    if (webglContext && 'pixelStorei' in webglContext) {
+      const ctx = webglContext as WebGLRenderingContext;
+      ctx.pixelStorei(ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
+      ctx.pixelStorei(ctx.UNPACK_FLIP_Y_WEBGL, 0);
+    }
+
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      onContextLost();
+    };
+
+    const handleContextRestored = () => {
+      onContextRestored();
+    };
+
+    canvas.addEventListener('webglcontextlost', handleContextLost, { passive: false });
+    canvas.addEventListener('webglcontextrestored', handleContextRestored);
+
+    return () => {
+      canvas.removeEventListener('webglcontextlost', handleContextLost);
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+      gl.copyFramebufferToTexture = originalCopyFramebufferToTexture;
+    };
+  }, [gl, onContextLost, onContextRestored]);
 
   return (
     <>
@@ -179,21 +225,50 @@ function SceneContent() {
 
 export function HeroScene() {
   const { reducedMotion } = useMotionPreferences();
+  const [contextLost, setContextLost] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+
+  const handleContextLost = useCallback(() => {
+    setContextLost(true);
+  }, []);
+
+  const handleContextRestored = useCallback(() => {
+    setContextLost(false);
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    setContextLost(false);
+    setResetKey((value) => value + 1);
+  }, []);
 
   if (!isFeatureEnabled('ENABLE_3D')) {
     return null;
   }
 
   return (
-    <Canvas
-      gl={{ antialias: true, stencil: false, depth: true, powerPreference: 'high-performance' }}
-      dpr={[1, 1.8]}
-      performance={{ min: 0.5 }}
-      className={reducedMotion ? 'hero__canvas hero__canvas--static' : 'hero__canvas'}
-    >
-      <Suspense fallback={null}>
-        <SceneContent />
-      </Suspense>
-    </Canvas>
+    <div className="hero__canvas-wrapper">
+      {contextLost && (
+        <div role="status" className="hero__canvas-fallback">
+          <p>La scena interattiva è stata messa in pausa per risparmiare risorse.</p>
+          <button type="button" onClick={handleRetry} className="hero__canvas-retry">
+            Ricarica esperienza
+          </button>
+        </div>
+      )}
+      <Canvas
+        key={resetKey}
+        gl={{ antialias: true, stencil: false, depth: true, powerPreference: 'high-performance' }}
+        dpr={[1, 1.8]}
+        performance={{ min: 0.5 }}
+        className={reducedMotion ? 'hero__canvas hero__canvas--static' : 'hero__canvas'}
+        onCreated={() => {
+          setContextLost(false);
+        }}
+      >
+        <Suspense fallback={null}>
+          <SceneContent onContextLost={handleContextLost} onContextRestored={handleContextRestored} />
+        </Suspense>
+      </Canvas>
+    </div>
   );
 }

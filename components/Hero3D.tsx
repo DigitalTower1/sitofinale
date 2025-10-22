@@ -47,6 +47,8 @@ export function Hero3D() {
 
   return (
     <div ref={ref} className="hero__visual" aria-hidden>
+      <div className="hero__visual-aura" aria-hidden />
+      <div className="hero__visual-reflection" aria-hidden />
       {mounted && inView && !reducedMotion ? <Scene /> : <HeroPoster />}
     </div>
   );

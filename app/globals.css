@@ -3,7 +3,7 @@
 @import "../styles/sections.css";
 
 :root {
-  color-scheme: dark light;
+  color-scheme: dark;
   background-color: var(--color-obsidian);
 }
 
@@ -32,6 +32,8 @@ body::before {
   opacity: 0.9;
   mix-blend-mode: screen;
   z-index: calc(var(--z-overlay) - 1);
+  transform: translate3d(0, 0, 0);
+  animation: body-aurora 18s var(--ease-in-out-lux) infinite alternate;
 }
 
 body::after {
@@ -43,6 +45,124 @@ body::after {
   mix-blend-mode: soft-light;
   opacity: var(--grain-opacity);
   z-index: calc(var(--z-overlay) - 2);
+  background-size: 520px 520px;
+  animation: grain-shift 12s steps(2) infinite;
+}
+
+.marble-field {
+  position: fixed;
+  inset: -15%;
+  pointer-events: none;
+  z-index: -2;
+  transform: translate3d(var(--marble-shift-x, 0), var(--marble-shift-y, 0), 0);
+  transition: transform 0.6s var(--ease-out-lux);
+  opacity: 0.55;
+}
+
+.marble-field::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(320px 280px at 18% 22%, rgba(232, 184, 107, 0.16), transparent 70%),
+    radial-gradient(360px 320px at 72% 64%, rgba(118, 134, 255, 0.12), transparent 75%),
+    radial-gradient(420px 360px at 44% 82%, rgba(245, 241, 232, 0.16), transparent 80%),
+    radial-gradient(360px 360px at 58% 28%, rgba(220, 194, 138, 0.14), transparent 78%);
+  background-size: 420px 420px;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  filter: saturate(120%);
+}
+
+.marble-field::after {
+  content: '';
+  position: absolute;
+  inset: -5%;
+  background-image:
+    linear-gradient(90deg, rgba(245, 241, 232, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(245, 241, 232, 0.08) 1px, transparent 1px);
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+  transform: translate3d(calc(var(--marble-shift-x, 0) * 0.25), calc(var(--marble-shift-y, 0) * 0.25), 0);
+  transition: transform 0.6s var(--ease-out-lux);
+  filter: blur(0.2px);
+}
+
+.guided-light {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 150;
+  --light-current-center: 40%;
+  --light-current-spread: 90%;
+  --light-next-center: 65%;
+  --light-next-spread: 90%;
+}
+
+.guided-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 4, 10, 0.72);
+  mix-blend-mode: multiply;
+  backdrop-filter: saturate(115%) brightness(0.82);
+}
+
+.guided-light::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(ellipse var(--light-current-spread) var(--light-current-spread) at 50% var(--light-current-center), rgba(232, 184, 107, 0.55) 0%, rgba(232, 184, 107, 0.12) 55%, transparent 80%),
+    radial-gradient(ellipse var(--light-next-spread) var(--light-next-spread) at 50% var(--light-next-center), rgba(118, 134, 255, 0.4) 0%, rgba(118, 134, 255, 0.1) 55%, transparent 85%);
+  mix-blend-mode: screen;
+  filter: blur(65px) saturate(120%);
+  opacity: 0.9;
+  transition: transform 0.5s var(--ease-out-lux);
+}
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+}
+
+.scroll-progress__track {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px) saturate(120%);
+  overflow: hidden;
+  border-bottom: 1px solid rgba(232, 184, 107, 0.18);
+}
+
+.scroll-progress__bar {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: left;
+  transform: scaleX(var(--progress-value, 0));
+  background: linear-gradient(90deg, rgba(40, 124, 255, 0.1), rgba(232, 184, 107, 0.9), rgba(255, 255, 255, 0.7));
+  box-shadow: 0 0 22px rgba(232, 184, 107, 0.35);
+  transition: transform 0.25s var(--ease-out-lux);
+}
+
+.scroll-progress__glow {
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  width: 140px;
+  right: -70px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.85), rgba(232, 184, 107, 0.45) 55%, transparent 80%);
+  filter: blur(18px);
+  opacity: clamp(0.35, var(--progress-value, 0), 1);
+  transform: translateX(calc((var(--progress-value, 0) * 100%) - 50%));
+  transition: transform 0.25s var(--ease-out-lux), opacity 0.25s var(--ease-out-lux);
 }
 
 a {
@@ -97,4 +217,47 @@ button {
 .skip-link:focus {
   transform: translate(-50%, 0);
   opacity: 1;
+}
+
+@keyframes body-aurora {
+  0% {
+    transform: translate3d(-8%, -6%, 0) scale(1);
+    filter: saturate(110%);
+  }
+
+  50% {
+    transform: translate3d(6%, 8%, 0) scale(1.05);
+    filter: saturate(130%);
+  }
+
+  100% {
+    transform: translate3d(-4%, 4%, 0) scale(1.02);
+    filter: saturate(115%);
+  }
+}
+
+@keyframes grain-shift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-20%, 15%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after {
+    animation: none !important;
+  }
+
+  .card--carbon::before,
+  .card__edge-light,
+  .section__connector,
+  .scroll-progress__bar,
+  .scroll-progress__glow {
+    animation: none !important;
+    transition: none !important;
+  }
 }

@@ -14,27 +14,57 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 const STORAGE_KEY = 'digital-tower-theme';
 
+function resolveInitialTheme(): Theme {
+  if (typeof window === 'undefined') {
+    return 'dark';
+  }
+
+  const rootTheme = document.documentElement.dataset.theme;
+  if (rootTheme === 'light' || rootTheme === 'dark') {
+    return rootTheme;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') {
+      return stored;
+    }
+  } catch (error) {
+    // Ignore storage access errors and fall back to system preference.
+  }
+
+  const prefersLight = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(prefers-color-scheme: light)').matches
+    : false;
+  return prefersLight ? 'light' : 'dark';
+}
+
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
+  const body = document.body;
   root.dataset.theme = theme;
-  root.style.setProperty('color-scheme', theme === 'dark' ? 'dark' : 'light');
+  root.removeAttribute('style');
+  if (body) {
+    body.dataset.theme = theme;
+    body.removeAttribute('style');
+  }
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
+  const [theme, setThemeState] = useState<Theme>(() => resolveInitialTheme());
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const systemPrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-    const initial = stored ?? (systemPrefersLight ? 'light' : 'dark');
-    setThemeState(initial);
-    applyTheme(initial);
-  }, []);
+    applyTheme(theme);
+  }, [theme]);
 
   const setTheme = (value: Theme) => {
     setThemeState(value);
     applyTheme(value);
-    window.localStorage.setItem(STORAGE_KEY, value);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, value);
+    } catch (error) {
+      // Ignore storage access errors so theme toggling still works.
+    }
   };
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');

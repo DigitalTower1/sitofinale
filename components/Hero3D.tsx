@@ -13,7 +13,6 @@ const Scene = dynamic(() => import('../3d/Scene').then((mod) => mod.HeroScene), 
 function HeroPoster({ isLoading = false }: { isLoading?: boolean }) {
   return (
     <div className={clsx('hero__poster', { 'hero__poster--loading': isLoading })}>
-      <div className="hero__poster-glow" />
       <div className="hero__poster-gradient" />
     </div>
   );

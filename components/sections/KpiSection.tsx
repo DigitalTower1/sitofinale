@@ -54,6 +54,7 @@ export function KpiSection() {
   useEffect(() => {
     if (reducedMotion || !container.current) return;
 
+    const cleanups: Array<() => void> = [];
     const ctx = gsap.context(() => {
       const cards = gsap.utils.toArray<HTMLElement>('.kpi__card');
 
@@ -81,6 +82,20 @@ export function KpiSection() {
 
         const counter = { value: 0 };
 
+        const orbit = card.querySelector<HTMLElement>('.kpi__orbit');
+        if (orbit) {
+          gsap.fromTo(
+            orbit,
+            { rotate: 0 },
+            {
+              rotate: 360,
+              duration: 18,
+              ease: 'none',
+              repeat: -1
+            }
+          );
+        }
+
         gsap.fromTo(
           counter,
           { value: metric.value },
@@ -103,11 +118,59 @@ export function KpiSection() {
       });
     }, container);
 
-    return () => ctx.revert();
+    const cards = container.current.querySelectorAll<HTMLElement>('.kpi__card');
+    cards.forEach((card) => {
+      gsap.set(card, { transformPerspective: 650 });
+      const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.6, ease: 'power3.out' });
+      const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.6, ease: 'power3.out' });
+      const orbit = card.querySelector<HTMLElement>('.kpi__orbit');
+
+      const handleMove = (event: PointerEvent) => {
+        const rect = card.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        rotateY((relX - 0.5) * 10);
+        rotateX(-(relY - 0.5) * 8);
+
+        if (orbit) {
+          gsap.to(orbit, {
+            x: (relX - 0.5) * 24,
+            y: (relY - 0.5) * 24,
+            duration: 0.6,
+            ease: 'power3.out'
+          });
+        }
+      };
+
+      const reset = () => {
+        rotateX(0);
+        rotateY(0);
+        if (orbit) {
+          gsap.to(orbit, { x: 0, y: 0, duration: 0.6, ease: 'power3.out' });
+        }
+      };
+
+      card.addEventListener('pointermove', handleMove);
+      card.addEventListener('pointerleave', reset);
+      cleanups.push(() => {
+        card.removeEventListener('pointermove', handleMove);
+        card.removeEventListener('pointerleave', reset);
+      });
+    });
+
+    return () => {
+      cleanups.forEach((dispose) => dispose());
+      ctx.revert();
+    };
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section kpi" aria-labelledby="kpi-heading">
+    <section
+      ref={container}
+      className="section kpi"
+      aria-labelledby="kpi-heading"
+      data-guided-section="kpi"
+    >
       <div className="section__header">
         <p className="section__eyebrow">KPI Dashboard</p>
         <h2 id="kpi-heading" className="section__title">
@@ -123,11 +186,11 @@ export function KpiSection() {
           <article
             key={metric.label}
             role="listitem"
-            className="kpi__card"
+            className="kpi__card card--carbon"
             data-value={metric.value}
             data-suffix={metric.suffix}
           >
-            <div className="kpi__glow" aria-hidden />
+            <span className="kpi__orbit" aria-hidden />
             <h3>{metric.label}</h3>
             <span className="kpi__value" aria-live="polite">
               {metric.prefix ?? ''}

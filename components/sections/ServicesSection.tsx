@@ -50,6 +50,7 @@ export function ServicesSection() {
 
   useEffect(() => {
     if (reducedMotion || !container.current) return;
+    const cleanups: Array<() => void> = [];
     const ctx = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>('.service-card').forEach((card, index) => {
         gsap.fromTo(
@@ -67,14 +68,77 @@ export function ServicesSection() {
             delay: index * 0.08
           }
         );
+
+        const texture = card.querySelector<HTMLElement>('.service-card__texture');
+        if (texture) {
+          gsap.to(texture, {
+            backgroundPosition: '120% 80%',
+            filter: 'contrast(140%)',
+            duration: 16,
+            ease: 'none',
+            repeat: -1,
+            delay: index * 0.35
+          });
+        }
       });
     }, container);
 
-    return () => ctx.revert();
+    const cards = container.current.querySelectorAll<HTMLElement>('.service-card');
+    cards.forEach((card) => {
+      gsap.set(card, { transformPerspective: 800 });
+      const texture = card.querySelector<HTMLElement>('.service-card__texture');
+      const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
+      const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
+
+      const handleMove = (event: PointerEvent) => {
+        const rect = card.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        rotateY((relX - 0.5) * 16);
+        rotateX(-(relY - 0.5) * 12);
+
+        if (texture) {
+          gsap.to(texture, {
+            backgroundPosition: `${50 + (relX - 0.5) * 40}% ${50 + (relY - 0.5) * 40}%`,
+            duration: 0.6,
+            ease: 'power3.out'
+          });
+        }
+      };
+
+      const reset = () => {
+        rotateX(0);
+        rotateY(0);
+        if (texture) {
+          gsap.to(texture, {
+            backgroundPosition: '50% 50%',
+            duration: 0.6,
+            ease: 'power3.out'
+          });
+        }
+      };
+
+      card.addEventListener('pointermove', handleMove);
+      card.addEventListener('pointerleave', reset);
+      cleanups.push(() => {
+        card.removeEventListener('pointermove', handleMove);
+        card.removeEventListener('pointerleave', reset);
+      });
+    });
+
+    return () => {
+      cleanups.forEach((dispose) => dispose());
+      ctx.revert();
+    };
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section services" aria-labelledby="services-heading">
+    <section
+      ref={container}
+      className="section services"
+      aria-labelledby="services-heading"
+      data-guided-section="services"
+    >
       <div className="section__header">
         <p className="section__eyebrow">Servizi Signature</p>
         <h2 id="services-heading" className="section__title">
@@ -86,8 +150,13 @@ export function ServicesSection() {
       </div>
       <div className="services__grid">
         {services.map((service) => (
-          <article key={service.id} id={service.id} className={clsx('service-card')} data-tone={service.tone}>
-            <div className="service-card__halo" aria-hidden />
+          <article
+            key={service.id}
+            id={service.id}
+            className={clsx('service-card', 'card--carbon')}
+            data-tone={service.tone}
+          >
+            <div className="service-card__texture" aria-hidden />
             <p className="service-card__tagline">{service.tagline}</p>
             <h3>{service.title}</h3>
             <p>{service.description}</p>

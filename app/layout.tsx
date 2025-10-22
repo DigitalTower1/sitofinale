@@ -13,8 +13,18 @@ import { MotionReduceBoundary } from '../components/MotionReduceBoundary';
 import { MarbleBackground } from '../components/MarbleBackground';
 import { ScrollProgressBar } from '../components/ScrollProgressBar';
 
-const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-display-active' });
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], display: 'swap', variable: '--font-sans-active' });
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-display-active'
+});
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-sans-active'
+});
 
 export const metadata: Metadata = {
   ...defaultMetadata,

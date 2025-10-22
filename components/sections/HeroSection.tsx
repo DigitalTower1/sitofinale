@@ -122,6 +122,7 @@ export function HeroSection() {
         </div>
       </div>
       <Hero3D />
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

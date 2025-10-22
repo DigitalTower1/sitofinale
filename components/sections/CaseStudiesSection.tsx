@@ -287,6 +287,7 @@ export function CaseStudiesSection() {
           </Link>
         ))}
       </div>
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

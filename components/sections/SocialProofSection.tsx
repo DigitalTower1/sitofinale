@@ -48,6 +48,7 @@ export function SocialProofSection() {
   useEffect(() => {
     if (reducedMotion || !container.current) return;
 
+    const cleanups: Array<() => void> = [];
     const ctx = gsap.context(() => {
       const cards = gsap.utils.toArray<HTMLElement>('.social-proof__partner');
       cards.forEach((card, index) => {
@@ -66,6 +67,19 @@ export function SocialProofSection() {
             delay: index * 0.06
           }
         );
+
+        const halo = card.querySelector<HTMLElement>('.social-proof__halo');
+        if (halo) {
+          gsap.to(halo, {
+            scale: 1.18,
+            opacity: 0.8,
+            duration: 5.5,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+            delay: index * 0.2
+          });
+        }
       });
 
       gsap.fromTo(
@@ -82,13 +96,73 @@ export function SocialProofSection() {
           }
         }
       );
+
+      gsap.to('.social-proof__quote-glow', {
+        opacity: 0.65,
+        scale: 1.1,
+        duration: 7,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true
+      });
     }, container);
 
-    return () => ctx.revert();
+    const cards = container.current.querySelectorAll<HTMLElement>('.social-proof__partner');
+    cards.forEach((card) => {
+      gsap.set(card, { transformPerspective: 600 });
+      const halo = card.querySelector<HTMLElement>('.social-proof__halo');
+      const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.6, ease: 'power3.out' });
+      const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.6, ease: 'power3.out' });
+      const translateZ = gsap.quickTo(card, 'z', { duration: 0.6, ease: 'power3.out' });
+
+      const handleMove = (event: PointerEvent) => {
+        const rect = card.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        rotateY((relX - 0.5) * 14);
+        rotateX(-(relY - 0.5) * 10);
+        translateZ(12);
+
+        if (halo) {
+          gsap.to(halo, {
+            x: (relX - 0.5) * 40,
+            y: (relY - 0.5) * 30,
+            duration: 0.6,
+            ease: 'power3.out'
+          });
+        }
+      };
+
+      const reset = () => {
+        rotateX(0);
+        rotateY(0);
+        translateZ(0);
+        if (halo) {
+          gsap.to(halo, { x: 0, y: 0, duration: 0.8, ease: 'power3.out' });
+        }
+      };
+
+      card.addEventListener('pointermove', handleMove);
+      card.addEventListener('pointerleave', reset);
+      cleanups.push(() => {
+        card.removeEventListener('pointermove', handleMove);
+        card.removeEventListener('pointerleave', reset);
+      });
+    });
+
+    return () => {
+      cleanups.forEach((dispose) => dispose());
+      ctx.revert();
+    };
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section social-proof" aria-labelledby="social-proof-heading">
+    <section
+      ref={container}
+      className="section social-proof"
+      aria-labelledby="social-proof-heading"
+      data-guided-section="alliances"
+    >
       <div className="section__header">
         <p className="section__eyebrow">Alliances</p>
         <h2 id="social-proof-heading" className="section__title">
@@ -104,24 +178,29 @@ export function SocialProofSection() {
           <article
             key={partner.name}
             role="listitem"
-            className="social-proof__partner"
+            className="social-proof__partner card--carbon"
             data-tone={partner.tone}
             aria-label={`${partner.name} — ${partner.description}`}
           >
+            <span className="card__edge-light" aria-hidden />
             <div className="social-proof__halo" aria-hidden />
+            <div className="social-proof__texture" aria-hidden />
             <p className="social-proof__since">{partner.since}</p>
             <h3>{partner.name}</h3>
             <p>{partner.description}</p>
           </article>
         ))}
       </div>
-      <figure className="social-proof__quote-block">
+      <figure className="social-proof__quote-block card--carbon">
+        <span className="card__edge-light" aria-hidden />
+        <div className="social-proof__quote-glow" aria-hidden />
         <blockquote>{testimonial.quote}</blockquote>
         <figcaption>
           <span>{testimonial.author}</span>
           <span>{testimonial.role}</span>
         </figcaption>
       </figure>
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

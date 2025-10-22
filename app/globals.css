@@ -51,13 +51,12 @@ body::after {
 
 .marble-field {
   position: fixed;
-  inset: -15%;
+  inset: 0;
   pointer-events: none;
   z-index: -2;
-  transform: translate3d(var(--marble-shift-x, 0), var(--marble-shift-y, 0), 0);
-  transition: transform 0.6s var(--ease-out-lux);
-  opacity: 0.62;
+  opacity: 0.45;
   overflow: hidden;
+  contain: paint;
 }
 
 .marble-field__texture,

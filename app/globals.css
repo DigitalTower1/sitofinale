@@ -101,6 +101,11 @@ body::after {
   --link-top: 50%;
   --link-height: 0px;
   --link-opacity: 0;
+  --light-band-start: 24%;
+  --light-band-end: 76%;
+  --light-glow-start: 18%;
+  --light-glow-end: 82%;
+  --light-band-mid: 50%;
 }
 
 .guided-light__dim,
@@ -113,10 +118,20 @@ body::after {
 
 .guided-light__dim {
   background:
-    radial-gradient(circle var(--light-softness) at 50% var(--light-center), rgba(6, 8, 16, 0) 0%, rgba(6, 8, 16, 0.78) 68%, rgba(2, 3, 8, 0.92) 100%);
-  background-color: rgba(2, 3, 8, 0.6);
+    linear-gradient(
+      180deg,
+      rgba(6, 8, 16, 0.92) 0%,
+      rgba(6, 8, 16, 0.86) var(--light-glow-start),
+      rgba(6, 8, 16, 0.48) var(--light-band-start),
+      rgba(6, 8, 16, 0.32) var(--light-band-mid),
+      rgba(6, 8, 16, 0.48) var(--light-band-end),
+      rgba(6, 8, 16, 0.86) var(--light-glow-end),
+      rgba(6, 8, 16, 0.94) 100%
+    ),
+    radial-gradient(circle var(--light-softness) at 50% var(--light-center), rgba(10, 12, 24, 0.1) 0%, rgba(6, 8, 16, 0.65) 70%, rgba(2, 3, 8, 0.9) 100%);
+  background-color: rgba(2, 3, 8, 0.55);
   mix-blend-mode: multiply;
-  backdrop-filter: saturate(112%) brightness(0.88);
+  backdrop-filter: saturate(118%) brightness(0.9);
   transition:
     background-position 0.45s var(--ease-out-lux),
     background-size 0.45s var(--ease-out-lux);
@@ -125,7 +140,15 @@ body::after {
 
 .guided-light__beam {
   background:
-    radial-gradient(circle var(--light-radius) at 50% var(--light-center), rgba(248, 226, 192, 0.35) 0%, rgba(248, 226, 192, 0.1) 55%, transparent 85%);
+    radial-gradient(circle var(--light-radius) at 50% var(--light-center), rgba(248, 226, 192, 0.28) 0%, rgba(248, 226, 192, 0.12) 60%, transparent 90%),
+    linear-gradient(
+      180deg,
+      rgba(232, 184, 107, 0) 0%,
+      rgba(232, 184, 107, 0.2) var(--light-band-start),
+      rgba(255, 240, 220, 0.35) var(--light-band-mid),
+      rgba(126, 150, 255, 0.2) var(--light-band-end),
+      rgba(126, 150, 255, 0) 100%
+    );
   mix-blend-mode: screen;
   filter: blur(22px) saturate(118%);
   opacity: var(--light-strength);

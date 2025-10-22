@@ -57,6 +57,7 @@ export function GuidedLight() {
       }
 
       const viewportHeight = window.innerHeight || 1;
+      const viewportWidth = window.innerWidth || 1;
       const viewportCenter = viewportHeight / 2;
       const viewportCenterDocument = window.scrollY + viewportCenter;
 
@@ -93,11 +94,19 @@ export function GuidedLight() {
 
       container.dataset.activeSection = active.section.id;
 
-      const baseRadius = clamp(active.rect.height * 0.28, 90, 150);
+      const viewportDiagonal = Math.hypot(viewportWidth, viewportHeight) || viewportHeight;
+      const baseRadius = clamp(
+        Math.max(active.rect.height, viewportHeight) * 0.65,
+        viewportDiagonal * 0.55,
+        viewportDiagonal * 0.72
+      );
       let targetCenterViewport = active.centerViewport;
       let lightRadius = baseRadius;
-      let lightSoftness = baseRadius * 2.4;
-      let lightStrength = 0.55;
+      let lightSoftness = baseRadius * 2.2;
+      const focusDistance = Math.abs(viewportCenterDocument - active.centerDocument);
+      const focusNormalizer = active.rect.height * 0.6 + viewportHeight * 0.25;
+      const sectionFocus = clamp(1 - focusDistance / Math.max(focusNormalizer, 1), 0, 1);
+      let lightStrength = 0.35 + sectionFocus * 0.45;
       let connectorTop = (targetCenterViewport / viewportHeight) * 100;
       let connectorHeight = 0;
       let connectorOpacity = 0;
@@ -120,12 +129,18 @@ export function GuidedLight() {
           );
           targetCenterViewport =
             active.centerViewport + (forward.centerViewport - active.centerViewport) * progress;
-          const forwardRadius = clamp(forward.rect.height * 0.28, 90, 150);
-          lightRadius = activeIndex === metrics.length - 1 ? baseRadius : lightRadius;
+          const forwardRadius = clamp(
+            Math.max(forward.rect.height, viewportHeight) * 0.65,
+            viewportDiagonal * 0.55,
+            viewportDiagonal * 0.72
+          );
           lightRadius =
-            baseRadius + (forwardRadius - baseRadius) * progress * 0.8;
-          lightSoftness = lightRadius * 2.6;
-          lightStrength = 0.55 + 0.25 * Math.sin(progress * Math.PI);
+            baseRadius + (forwardRadius - baseRadius) * progress * 0.75;
+          lightSoftness = lightRadius * 2.1;
+          lightStrength = Math.max(
+            lightStrength,
+            0.35 + (0.45 + 0.15 * Math.sin(progress * Math.PI))
+          );
           applyConnector(active.centerViewport, forward.centerViewport, progress);
         }
       } else if (backward !== active && viewportCenterDocument < active.centerDocument) {
@@ -138,21 +153,50 @@ export function GuidedLight() {
           );
           targetCenterViewport =
             active.centerViewport - (active.centerViewport - backward.centerViewport) * progress;
-          const backwardRadius = clamp(backward.rect.height * 0.28, 90, 150);
+          const backwardRadius = clamp(
+            Math.max(backward.rect.height, viewportHeight) * 0.65,
+            viewportDiagonal * 0.55,
+            viewportDiagonal * 0.72
+          );
           lightRadius =
-            baseRadius + (backwardRadius - baseRadius) * progress * 0.8;
-          lightSoftness = lightRadius * 2.6;
-          lightStrength = 0.55 + 0.25 * Math.sin(progress * Math.PI);
+            baseRadius + (backwardRadius - baseRadius) * progress * 0.75;
+          lightSoftness = lightRadius * 2.1;
+          lightStrength = Math.max(
+            lightStrength,
+            0.35 + (0.45 + 0.15 * Math.sin(progress * Math.PI))
+          );
           applyConnector(active.centerViewport, backward.centerViewport, progress);
         }
       }
 
       const centerRatio = clamp(targetCenterViewport / viewportHeight, 0, 1) * 100;
+      const spanViewport = clamp(lightRadius * 1.35, viewportHeight * 0.65, viewportDiagonal * 0.95);
+      const startRatio = clamp(
+        (targetCenterViewport - spanViewport / 2) / viewportHeight,
+        0,
+        1
+      );
+      const endRatio = clamp(
+        (targetCenterViewport + spanViewport / 2) / viewportHeight,
+        0,
+        1
+      );
+      const glowStart = clamp(startRatio - 0.08, 0, 1) * 100;
+      const glowEnd = clamp(endRatio + 0.08, 0, 1) * 100;
+      const bandStart = startRatio * 100;
+      const bandEnd = endRatio * 100;
+      const bandMid = clamp((startRatio + endRatio) / 2, 0, 1) * 100;
+      lightStrength = clamp(lightStrength, 0.25, 1);
 
       container.style.setProperty('--light-center', `${centerRatio}%`);
       container.style.setProperty('--light-radius', `${lightRadius}px`);
       container.style.setProperty('--light-softness', `${lightSoftness}px`);
       container.style.setProperty('--light-strength', lightStrength.toString());
+      container.style.setProperty('--light-band-start', `${bandStart}%`);
+      container.style.setProperty('--light-band-end', `${bandEnd}%`);
+      container.style.setProperty('--light-glow-start', `${glowStart}%`);
+      container.style.setProperty('--light-glow-end', `${glowEnd}%`);
+      container.style.setProperty('--light-band-mid', `${bandMid}%`);
 
       link.style.setProperty('--link-top', `${connectorTop}%`);
       link.style.setProperty('--link-height', `${connectorHeight}px`);

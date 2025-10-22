@@ -43,13 +43,44 @@ export function ProcessSection() {
           scrub: 1
         }
       });
+
+      gsap.to('.process__aura', {
+        backgroundPosition: '120% 40%',
+        duration: 18,
+        ease: 'none',
+        repeat: -1
+      });
+
+      gsap.utils.toArray<HTMLElement>('.process__grid li').forEach((item, index) => {
+        gsap.fromTo(
+          item,
+          { opacity: 0, y: 32, filter: 'blur(12px)' },
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 85%'
+            },
+            delay: index * 0.1
+          }
+        );
+      });
     }, container);
 
     return () => ctx.revert();
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section process" aria-labelledby="process-heading">
+    <section
+      ref={container}
+      className="section process"
+      aria-labelledby="process-heading"
+      data-guided-section="process"
+    >
       <div className="section__header">
         <p className="section__eyebrow">Metodo</p>
         <h2 id="process-heading" className="section__title">
@@ -57,10 +88,11 @@ export function ProcessSection() {
         </h2>
       </div>
       <div className="process__grid">
+        <div className="process__aura" aria-hidden />
         <div className="process__line" aria-hidden />
         <ul>
           {steps.map((step) => (
-            <li key={step.title}>
+            <li key={step.title} className="process__step card--carbon">
               <h3>{step.title}</h3>
               <p>{step.description}</p>
             </li>

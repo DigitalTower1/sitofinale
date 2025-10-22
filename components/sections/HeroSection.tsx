@@ -15,6 +15,8 @@ export function HeroSection() {
 
   useEffect(() => {
     if (reducedMotion || !container.current) return;
+    const heroEl = container.current;
+    const cleanups: Array<() => void> = [];
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -56,13 +58,51 @@ export function HeroSection() {
           });
         }
       });
+
     }, container);
 
-    return () => ctx.revert();
+    const visual = heroEl.querySelector<HTMLElement>('.hero__visual');
+
+    if (visual) {
+      gsap.set(visual, { transformPerspective: 900 });
+      const rotateX = gsap.quickTo(visual, 'rotationX', { duration: 0.6, ease: 'power3.out' });
+      const rotateY = gsap.quickTo(visual, 'rotationY', { duration: 0.6, ease: 'power3.out' });
+
+      const handleMove = (event: PointerEvent) => {
+        const rect = visual.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width;
+        const relY = (event.clientY - rect.top) / rect.height;
+        rotateY((relX - 0.5) * 16);
+        rotateX(-(relY - 0.5) * 12);
+
+      };
+
+      const resetTilt = () => {
+        rotateX(0);
+        rotateY(0);
+      };
+
+      heroEl.addEventListener('pointermove', handleMove);
+      heroEl.addEventListener('pointerleave', resetTilt);
+      cleanups.push(() => {
+        heroEl.removeEventListener('pointermove', handleMove);
+        heroEl.removeEventListener('pointerleave', resetTilt);
+      });
+    }
+
+    return () => {
+      cleanups.forEach((dispose) => dispose());
+      ctx.revert();
+    };
   }, [reducedMotion]);
 
   return (
-    <section ref={container} className="section hero" aria-labelledby="hero-heading">
+    <section
+      ref={container}
+      className="section hero"
+      aria-labelledby="hero-heading"
+      data-guided-section="hero"
+    >
       <div className="hero__content">
         <p className="hero__eyebrow">Luxury Marketing Agency</p>
         <h1 id="hero-heading" className="hero__heading">

@@ -94,37 +94,108 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 150;
-  --light-current-center: 40%;
-  --light-current-radius: 160px;
-  --light-current-halo: 260px;
-  --light-next-center: 65%;
-  --light-next-radius: 170px;
-  --light-next-halo: 280px;
+  --light-center: 50%;
+  --light-radius: 120px;
+  --light-softness: 320px;
+  --light-strength: 0.55;
+  --link-top: 50%;
+  --link-height: 0px;
+  --link-opacity: 0;
 }
 
-.guided-light::before {
-  content: '';
+.guided-light__dim,
+.guided-light__beam,
+.guided-light__link {
   position: absolute;
   inset: 0;
+  pointer-events: none;
+}
+
+.guided-light__dim {
   background:
-    radial-gradient(circle var(--light-current-halo) at 50% var(--light-current-center), rgba(4, 4, 10, 0) 0%, rgba(4, 4, 10, 0.38) 58%, rgba(4, 4, 10, 0.64) 92%),
-    radial-gradient(circle var(--light-next-halo) at 50% var(--light-next-center), rgba(4, 4, 10, 0) 0%, rgba(4, 4, 10, 0.32) 54%, rgba(4, 4, 10, 0.58) 90%);
-  background-color: rgba(5, 5, 16, 0.38);
+    radial-gradient(circle var(--light-softness) at 50% var(--light-center), rgba(6, 8, 16, 0) 0%, rgba(6, 8, 16, 0.78) 68%, rgba(2, 3, 8, 0.92) 100%);
+  background-color: rgba(2, 3, 8, 0.6);
   mix-blend-mode: multiply;
-  backdrop-filter: saturate(110%) brightness(0.92);
+  backdrop-filter: saturate(112%) brightness(0.88);
+  transition:
+    background-position 0.45s var(--ease-out-lux),
+    background-size 0.45s var(--ease-out-lux);
+  will-change: background-position, background-size;
 }
 
-.guided-light::after {
+.guided-light__beam {
+  background:
+    radial-gradient(circle var(--light-radius) at 50% var(--light-center), rgba(248, 226, 192, 0.35) 0%, rgba(248, 226, 192, 0.1) 55%, transparent 85%);
+  mix-blend-mode: screen;
+  filter: blur(22px) saturate(118%);
+  opacity: var(--light-strength);
+  transition:
+    background-position 0.45s var(--ease-out-lux),
+    background-size 0.45s var(--ease-out-lux),
+    opacity 0.3s ease;
+  will-change: background-position, background-size, opacity;
+}
+
+.guided-light__beam::after {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle var(--light-current-radius) at 50% var(--light-current-center), rgba(248, 220, 180, 0.48) 0%, rgba(248, 220, 180, 0.16) 40%, transparent 68%),
-    radial-gradient(circle var(--light-next-radius) at 50% var(--light-next-center), rgba(150, 166, 255, 0.32) 0%, rgba(150, 166, 255, 0.12) 36%, transparent 66%);
+    radial-gradient(circle calc(var(--light-radius) * 0.55) at 50% var(--light-center), rgba(255, 255, 255, 0.24) 0%, rgba(232, 184, 107, 0.35) 40%, rgba(126, 150, 255, 0.24) 68%, transparent 100%);
   mix-blend-mode: screen;
-  filter: blur(26px) saturate(112%);
-  opacity: 0.52;
-  transition: transform 0.5s var(--ease-out-lux), opacity 0.4s ease;
+  filter: blur(14px);
+  opacity: calc(var(--light-strength) * 0.85);
+  transition:
+    background-position 0.45s var(--ease-out-lux),
+    background-size 0.45s var(--ease-out-lux),
+    opacity 0.3s ease;
+}
+
+.guided-light__link {
+  top: var(--link-top);
+  height: var(--link-height);
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(120px, 24vw, 360px);
+  border-radius: 999px;
+  opacity: var(--link-opacity);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(245, 235, 218, 0) 0%,
+      rgba(245, 235, 218, 0.22) 18%,
+      rgba(232, 184, 107, 0.6) 45%,
+      rgba(116, 142, 255, 0.58) 55%,
+      rgba(245, 235, 218, 0.18) 82%,
+      rgba(245, 235, 218, 0) 100%
+    );
+  filter: blur(28px) saturate(130%);
+  mix-blend-mode: screen;
+  transition:
+    opacity 0.35s var(--ease-out-lux),
+    top 0.45s var(--ease-out-lux),
+    height 0.45s var(--ease-out-lux);
+}
+
+.guided-light__link::after {
+  content: '';
+  position: absolute;
+  top: 12%;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 249, 240, 0.42) 24%,
+    rgba(232, 184, 107, 0.65) 50%,
+    rgba(116, 142, 255, 0.55) 68%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  opacity: 0.55;
+  filter: blur(1px);
 }
 
 .scroll-progress {

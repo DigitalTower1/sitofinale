@@ -32,6 +32,8 @@ body::before {
   opacity: 0.9;
   mix-blend-mode: screen;
   z-index: calc(var(--z-overlay) - 1);
+  transform: translate3d(0, 0, 0);
+  animation: body-aurora 18s var(--ease-in-out-lux) infinite alternate;
 }
 
 body::after {
@@ -43,6 +45,8 @@ body::after {
   mix-blend-mode: soft-light;
   opacity: var(--grain-opacity);
   z-index: calc(var(--z-overlay) - 2);
+  background-size: 520px 520px;
+  animation: grain-shift 12s steps(2) infinite;
 }
 
 a {
@@ -97,4 +101,38 @@ button {
 .skip-link:focus {
   transform: translate(-50%, 0);
   opacity: 1;
+}
+
+@keyframes body-aurora {
+  0% {
+    transform: translate3d(-8%, -6%, 0) scale(1);
+    filter: saturate(110%);
+  }
+
+  50% {
+    transform: translate3d(6%, 8%, 0) scale(1.05);
+    filter: saturate(130%);
+  }
+
+  100% {
+    transform: translate3d(-4%, 4%, 0) scale(1.02);
+    filter: saturate(115%);
+  }
+}
+
+@keyframes grain-shift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-20%, 15%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after {
+    animation: none !important;
+  }
 }

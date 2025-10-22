@@ -1,0 +1,35 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lux-bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#050505" />
+      <stop offset="1" stop-color="#121212" />
+    </linearGradient>
+    <radialGradient id="flare" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(880 140) rotate(45) scale(420)">
+      <stop stop-color="#F9E6C8" stop-opacity="0.9" />
+      <stop offset="0.6" stop-color="#9E7D44" stop-opacity="0.45" />
+      <stop offset="1" stop-color="#090909" stop-opacity="0" />
+    </radialGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="2.3" numOctaves="4" seed="12" result="noise" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0" />
+    </filter>
+    <linearGradient id="stroke" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#CDB896" />
+      <stop offset="1" stop-color="#E4CFA3" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#lux-bg)" />
+  <rect width="1200" height="630" fill="url(#flare)" style="mix-blend-mode:screen" />
+  <g opacity="0.65">
+    <path d="M1040 90L930 540" stroke="url(#stroke)" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M150 120C220 80 360 78 430 120C500 162 560 260 620 300C680 340 760 330 820 290" stroke="url(#stroke)" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.55" />
+  </g>
+  <g filter="url(#grain)">
+    <rect width="1200" height="630" fill="#000" fill-opacity="0" />
+  </g>
+  <text x="120" y="190" fill="#DCC6A2" font-family="'Playfair Display', 'Times New Roman', serif" font-size="82" letter-spacing="0.08em">DIGITAL TOWER</text>
+  <text x="120" y="260" fill="#F5F2EA" font-family="'Playfair Display', 'Times New Roman', serif" font-size="36" letter-spacing="0.32em">SCALIAMO INSIEME LA TORRE DEL SUCCESSO</text>
+  <text x="120" y="360" fill="#E6D9C0" font-family="'Work Sans', 'Helvetica Neue', sans-serif" font-size="26" letter-spacing="0.08em">SOCIAL MEDIA · WEB DESIGN &amp; BRANDING · ADVERTISING · SEO</text>
+  <rect x="120" y="420" width="220" height="58" rx="29" fill="none" stroke="#D4AF37" stroke-width="1.5" />
+  <text x="160" y="458" fill="#F5F2EA" font-family="'Work Sans', 'Helvetica Neue', sans-serif" font-size="22" letter-spacing="0.2em">ENTER THE SUMMIT</text>
+</svg>

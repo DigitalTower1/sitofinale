@@ -77,6 +77,7 @@ export function HeroSection() {
           });
         }
       });
+
     }, container);
 
     const visual = heroEl.querySelector<HTMLElement>('.hero__visual');

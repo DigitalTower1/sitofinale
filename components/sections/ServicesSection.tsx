@@ -166,6 +166,7 @@ export function ServicesSection() {
           </article>
         ))}
       </div>
+      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

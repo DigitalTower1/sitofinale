@@ -230,23 +230,24 @@
 .card--carbon::after {
   content: '';
   position: absolute;
-  inset: -1px;
+  inset: -2px;
   border-radius: inherit;
   pointer-events: none;
-  background: conic-gradient(
+  background:
+    radial-gradient(circle at 50% 50%, rgba(232, 184, 107, 0.35) 0%, rgba(232, 184, 107, 0) 55%),
+    conic-gradient(
       from var(--card-glow-angle, 0deg) at 50% 50%,
-      rgba(255, 255, 255, 0.6) 0deg,
-      rgba(232, 184, 107, 0.42) 120deg,
-      rgba(40, 124, 255, 0.2) 210deg,
-      rgba(255, 255, 255, 0.6) 360deg
+      rgba(232, 184, 107, 0.65) 0deg,
+      rgba(118, 134, 255, 0.45) 120deg,
+      rgba(232, 184, 107, 0.65) 240deg,
+      rgba(118, 134, 255, 0.45) 360deg
     );
   mix-blend-mode: screen;
-  opacity: 0.58;
-  filter: blur(0.6px);
-  box-shadow: inset 0 0 14px rgba(232, 184, 107, 0.2), 0 0 36px rgba(232, 184, 107, 0.16);
-  mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  -webkit-mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  animation: card-glow-spin 16s linear infinite;
+  opacity: 0.75;
+  filter: blur(0.8px) drop-shadow(0 0 24px rgba(232, 184, 107, 0.28));
+  mask: radial-gradient(circle, transparent calc(100% - 12px), rgba(0, 0, 0, 0.95) calc(100% - 6px));
+  -webkit-mask: radial-gradient(circle, transparent calc(100% - 12px), rgba(0, 0, 0, 0.95) calc(100% - 6px));
+  animation: card-glow-spin 14s linear infinite, card-glow-pulse 6s ease-in-out infinite;
   z-index: 1;
 }
 
@@ -305,6 +306,19 @@
 
   100% {
     --card-glow-angle: 360deg;
+  }
+}
+
+@keyframes card-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    filter: blur(0.8px) drop-shadow(0 0 24px rgba(232, 184, 107, 0.28));
+  }
+
+  50% {
+    opacity: 0.95;
+    filter: blur(1.1px) drop-shadow(0 0 36px rgba(232, 184, 107, 0.36));
   }
 }
 
@@ -355,23 +369,24 @@
 .card--carbon::after {
   content: '';
   position: absolute;
-  inset: -1px;
+  inset: -2px;
   border-radius: inherit;
   pointer-events: none;
-  background: conic-gradient(
+  background:
+    radial-gradient(circle at 50% 50%, rgba(232, 184, 107, 0.35) 0%, rgba(232, 184, 107, 0) 55%),
+    conic-gradient(
       from var(--card-glow-angle, 0deg) at 50% 50%,
-      rgba(255, 255, 255, 0.6) 0deg,
-      rgba(232, 184, 107, 0.42) 120deg,
-      rgba(40, 124, 255, 0.2) 210deg,
-      rgba(255, 255, 255, 0.6) 360deg
+      rgba(232, 184, 107, 0.65) 0deg,
+      rgba(118, 134, 255, 0.45) 120deg,
+      rgba(232, 184, 107, 0.65) 240deg,
+      rgba(118, 134, 255, 0.45) 360deg
     );
   mix-blend-mode: screen;
-  opacity: 0.58;
-  filter: blur(0.6px);
-  box-shadow: inset 0 0 14px rgba(232, 184, 107, 0.2), 0 0 36px rgba(232, 184, 107, 0.16);
-  mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  -webkit-mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  animation: card-glow-spin 16s linear infinite;
+  opacity: 0.75;
+  filter: blur(0.8px) drop-shadow(0 0 24px rgba(232, 184, 107, 0.28));
+  mask: radial-gradient(circle, transparent calc(100% - 12px), rgba(0, 0, 0, 0.95) calc(100% - 6px));
+  -webkit-mask: radial-gradient(circle, transparent calc(100% - 12px), rgba(0, 0, 0, 0.95) calc(100% - 6px));
+  animation: card-glow-spin 14s linear infinite, card-glow-pulse 6s ease-in-out infinite;
   z-index: 1;
 }
 
@@ -430,6 +445,19 @@
 
   100% {
     --card-glow-angle: 360deg;
+  }
+}
+
+@keyframes card-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    filter: blur(0.8px) drop-shadow(0 0 24px rgba(232, 184, 107, 0.28));
+  }
+
+  50% {
+    opacity: 0.95;
+    filter: blur(1.1px) drop-shadow(0 0 36px rgba(232, 184, 107, 0.36));
   }
 }
 
@@ -480,23 +508,24 @@
 .card--carbon::after {
   content: '';
   position: absolute;
-  inset: -1px;
+  inset: -2px;
   border-radius: inherit;
   pointer-events: none;
-  background: conic-gradient(
+  background:
+    radial-gradient(circle at 50% 50%, rgba(232, 184, 107, 0.35) 0%, rgba(232, 184, 107, 0) 55%),
+    conic-gradient(
       from var(--card-glow-angle, 0deg) at 50% 50%,
-      rgba(255, 255, 255, 0.6) 0deg,
-      rgba(232, 184, 107, 0.42) 120deg,
-      rgba(40, 124, 255, 0.2) 210deg,
-      rgba(255, 255, 255, 0.6) 360deg
+      rgba(232, 184, 107, 0.65) 0deg,
+      rgba(118, 134, 255, 0.45) 120deg,
+      rgba(232, 184, 107, 0.65) 240deg,
+      rgba(118, 134, 255, 0.45) 360deg
     );
   mix-blend-mode: screen;
-  opacity: 0.58;
-  filter: blur(0.6px);
-  box-shadow: inset 0 0 14px rgba(232, 184, 107, 0.2), 0 0 36px rgba(232, 184, 107, 0.16);
-  mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  -webkit-mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  animation: card-glow-spin 16s linear infinite;
+  opacity: 0.75;
+  filter: blur(0.8px) drop-shadow(0 0 24px rgba(232, 184, 107, 0.28));
+  mask: radial-gradient(circle, transparent calc(100% - 12px), rgba(0, 0, 0, 0.95) calc(100% - 6px));
+  -webkit-mask: radial-gradient(circle, transparent calc(100% - 12px), rgba(0, 0, 0, 0.95) calc(100% - 6px));
+  animation: card-glow-spin 14s linear infinite, card-glow-pulse 6s ease-in-out infinite;
   z-index: 1;
 }
 
@@ -555,6 +584,19 @@
 
   100% {
     --card-glow-angle: 360deg;
+  }
+}
+
+@keyframes card-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    filter: blur(0.8px) drop-shadow(0 0 24px rgba(232, 184, 107, 0.28));
+  }
+
+  50% {
+    opacity: 0.95;
+    filter: blur(1.1px) drop-shadow(0 0 36px rgba(232, 184, 107, 0.36));
   }
 }
 

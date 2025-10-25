@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 type Theme = 'dark' | 'light';
 
@@ -55,19 +55,32 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(theme);
   }, [theme]);
 
-  const setTheme = (value: Theme) => {
-    setThemeState(value);
+  const persistTheme = useCallback((value: Theme) => {
     applyTheme(value);
     try {
       window.localStorage.setItem(STORAGE_KEY, value);
     } catch (error) {
       // Ignore storage access errors so theme toggling still works.
     }
-  };
+  }, []);
 
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+  const setTheme = useCallback(
+    (value: Theme) => {
+      setThemeState(value);
+      persistTheme(value);
+    },
+    [persistTheme]
+  );
 
-  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme]);
+  const toggleTheme = useCallback(() => {
+    setThemeState((current) => {
+      const next = current === 'dark' ? 'light' : 'dark';
+      persistTheme(next);
+      return next;
+    });
+  }, [persistTheme]);
+
+  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, setTheme, toggleTheme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

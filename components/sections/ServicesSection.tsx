@@ -4,130 +4,50 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import clsx from 'clsx';
+import type { CSSProperties } from 'react';
 import { MagneticButton } from '../MagneticButton';
 import { useMotionPreferences } from '../../hooks/useMotionPreferences';
+import { services as servicesData } from '../../content/services';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const services = [
-  {
-    id: 'social-media',
-    title: 'Social Media Management',
-    tagline: 'Pulse Orbit',
-    description:
-      'Editorial design, storytelling e performance per brand che vogliono dominare le conversazioni cross-platform.',
-    tone: 'pulse'
-  },
-  {
-    id: 'web-design',
-    title: 'Web Design & Branding',
-    tagline: 'Glass Atelier',
-    description:
-      'Sistemi di identità e siti WebGL/WebGPU tailor-made con performance enterprise e storytelling immersivo.',
-    tone: 'glass'
-  },
-  {
-    id: 'advertising',
-    title: 'Advertising',
-    tagline: 'Velocity Lab',
-    description:
-      'Media buying full funnel, motion ads cinematiche e ottimizzazione creativa guidata da AI first-party.',
-    tone: 'ignition'
-  },
-  {
-    id: 'seo',
-    title: 'SEO',
-    tagline: 'Signal Intelligence',
-    description:
-      'Architecture, contenuti e technical SEO con automazioni edge per scalare ranking e revenue organiche.',
-    tone: 'aether'
-  }
-];
+const SERVICE_TONES = ['pulse', 'glass', 'ignition', 'aether'] as const;
 
 export function ServicesSection() {
-  const container = useRef<HTMLDivElement>(null);
+  const container = useRef<HTMLElement>(null);
+  const orbitRef = useRef<HTMLDivElement>(null);
   const { reducedMotion } = useMotionPreferences();
 
   useEffect(() => {
-    if (reducedMotion || !container.current) return;
-    const cleanups: Array<() => void> = [];
+    const orbit = orbitRef.current;
+    const section = container.current;
+    if (!orbit || !section || reducedMotion) return;
+
     const ctx = gsap.context(() => {
-      gsap.utils.toArray<HTMLElement>('.service-card').forEach((card, index) => {
-        gsap.fromTo(
-          card,
-          { y: 40, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.9,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 80%'
-            },
-            delay: index * 0.08
-          }
-        );
+      gsap.set(orbit, { '--carousel-rotation': 0 });
 
-        const texture = card.querySelector<HTMLElement>('.service-card__texture');
-        if (texture) {
-          gsap.to(texture, {
-            backgroundPosition: '120% 80%',
-            filter: 'contrast(140%)',
-            duration: 16,
-            ease: 'none',
-            repeat: -1,
-            delay: index * 0.35
-          });
-        }
+      gsap.to(orbit, {
+        '--carousel-rotation': 360,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top center',
+          end: 'bottom bottom',
+          scrub: 1.2,
+        },
       });
-    }, container);
 
-    const cards = container.current.querySelectorAll<HTMLElement>('.service-card');
-    cards.forEach((card) => {
-      gsap.set(card, { transformPerspective: 800 });
-      const texture = card.querySelector<HTMLElement>('.service-card__texture');
-      const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
-      const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
-
-      const handleMove = (event: PointerEvent) => {
-        const rect = card.getBoundingClientRect();
-        const relX = (event.clientX - rect.left) / rect.width;
-        const relY = (event.clientY - rect.top) / rect.height;
-        rotateY((relX - 0.5) * 16);
-        rotateX(-(relY - 0.5) * 12);
-
-        if (texture) {
-          gsap.to(texture, {
-            backgroundPosition: `${50 + (relX - 0.5) * 40}% ${50 + (relY - 0.5) * 40}%`,
-            duration: 0.6,
-            ease: 'power3.out'
-          });
-        }
-      };
-
-      const reset = () => {
-        rotateX(0);
-        rotateY(0);
-        if (texture) {
-          gsap.to(texture, {
-            backgroundPosition: '50% 50%',
-            duration: 0.6,
-            ease: 'power3.out'
-          });
-        }
-      };
-
-      card.addEventListener('pointermove', handleMove);
-      card.addEventListener('pointerleave', reset);
-      cleanups.push(() => {
-        card.removeEventListener('pointermove', handleMove);
-        card.removeEventListener('pointerleave', reset);
+      gsap.to('.services-carousel__item', {
+        y: (index) => Math.sin(index) * 12,
+        duration: 2.4,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        stagger: { each: 0.12 },
       });
-    });
+    }, section);
 
     return () => {
-      cleanups.forEach((dispose) => dispose());
       ctx.revert();
     };
   }, [reducedMotion]);
@@ -135,38 +55,54 @@ export function ServicesSection() {
   return (
     <section
       ref={container}
-      className="section services"
+      className="story-panel services-panel"
       aria-labelledby="services-heading"
       data-guided-section="services"
+      data-story-panel
     >
-      <div className="section__header">
-        <p className="section__eyebrow">Servizi Signature</p>
-        <h2 id="services-heading" className="section__title">
-          Strategia, design e media orchestrati con precisione.
-        </h2>
-        <p className="section__description">
-          Ogni torre ha fondamenta solide. Creiamo ecosistemi digitali dove branding, media e contenuti lavorano all&apos;unisono.
-        </p>
-      </div>
-      <div className="services__grid">
-        {services.map((service) => (
-          <article
-            key={service.id}
-            id={service.id}
-            className={clsx('service-card', 'card--carbon')}
-            data-tone={service.tone}
+      <div className="story-panel__inner">
+        <div className="story-panel__header">
+          <p className="story-panel__eyebrow">Capitolo · Servizi</p>
+          <h2 id="services-heading">Orchestriamo piattaforme esperienziali end-to-end.</h2>
+          <p className="story-panel__lead">
+            Ogni servizio è un laboratorio indipendente con team multi-disciplinare. Lavoriamo in cicli cinematici per
+            guidare brand, prodotto e media in una stessa narrazione.
+          </p>
+        </div>
+        <div className="services-panel__body">
+          <div
+            ref={orbitRef}
+            className="services-carousel"
+            style={{ '--item-count': servicesData.length } as CSSProperties}
           >
-            <div className="service-card__texture" aria-hidden />
-            <p className="service-card__tagline">{service.tagline}</p>
-            <h3>{service.title}</h3>
-            <p>{service.description}</p>
-            <MagneticButton as="a" href={`/contact?topic=${service.id}`} variant="ghost" aria-label={`Richiedi ${service.title}`}>
-              Pianifica un consulto
-            </MagneticButton>
-          </article>
-        ))}
+            {servicesData.map((service, index) => (
+              <article
+                key={service.id}
+                className={clsx('services-carousel__item', 'card--carbon')}
+                data-tone={SERVICE_TONES[index % SERVICE_TONES.length]}
+                style={{ '--item-index': index } as CSSProperties}
+              >
+                <div className="services-carousel__tag">{service.title}</div>
+                <p>{service.description}</p>
+                <ul>
+                  {service.deliverables.map((deliverable) => (
+                    <li key={deliverable}>{deliverable}</li>
+                  ))}
+                </ul>
+                <MagneticButton as="a" href={`/contact?topic=${service.id}`} variant="ghost">
+                  Pianifica un deep dive
+                </MagneticButton>
+              </article>
+            ))}
+          </div>
+          <div className="services-panel__caption">
+            <p>
+              Carosello ellittico 3D — ogni modulo evidenzia il tono creativo attraverso texture carbonio e accenti
+              metallici. Ruota con lo scroll, reagisce al puntatore e mantiene focus su un solo card per volta.
+            </p>
+          </div>
+        </div>
       </div>
-      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

@@ -8,13 +8,14 @@ const isAnalyze = process.env.ANALYZE === 'true';
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverActions: true,
+    serverActions: {},
     optimizePackageImports: [
       'gsap',
       '@react-three/fiber',
       '@react-three/drei',
       '@react-three/postprocessing'
-    ]
+    ],
+    turbopackUseSystemTlsCerts: true
   },
   compiler: {
     styledComponents: false,
@@ -33,7 +34,8 @@ const nextConfig = {
       config.plugins.push(new BundleAnalyzerPlugin({ analyzerMode: 'static' }));
     }
     return config;
-  }
+  },
+  turbopack: {}
 };
 
 export default nextConfig;

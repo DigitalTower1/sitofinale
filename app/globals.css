@@ -250,6 +250,7 @@ button {
   }
 
   .card--carbon::before,
+  .card--carbon::after,
   .scroll-progress__bar {
     animation: none !important;
     transition: none !important;

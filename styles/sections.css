@@ -95,7 +95,7 @@
   color: rgba(244, 244, 250, 0.86);
 }
 
-.card--carbon::after {
+.card--marble::after {
   content: '';
   position: absolute;
   inset: 0;

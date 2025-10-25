@@ -4,6 +4,7 @@ import { MotionPreferencesProvider } from '../hooks/useMotionPreferences';
 import { ThemeProvider } from '../hooks/useTheme';
 import { WebVitalsProvider } from '../lib/analytics/WebVitalsProvider';
 import { PerformanceMonitor } from './PerformanceMonitor';
+import { SmoothScrollProvider } from './SmoothScrollProvider';
 import type { ReactNode } from 'react';
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -11,8 +12,10 @@ export function Providers({ children }: { children: ReactNode }) {
     <WebVitalsProvider>
       <ThemeProvider>
         <MotionPreferencesProvider>
-          <PerformanceMonitor />
-          {children}
+          <SmoothScrollProvider>
+            <PerformanceMonitor />
+            {children}
+          </SmoothScrollProvider>
         </MotionPreferencesProvider>
       </ThemeProvider>
     </WebVitalsProvider>

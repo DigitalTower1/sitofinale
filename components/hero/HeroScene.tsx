@@ -16,7 +16,142 @@ import {
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMotionPreferences } from '../../hooks/useMotionPreferences';
-import { SSRPass } from 'three-stdlib';
+import { SSRPass, SSRShader } from 'three-stdlib';
+
+type SSRUniformRecord = Record<string, { value: unknown }>;
+type SSRDefineRecord = Record<string, unknown>;
+
+let hasPatchedSSRShader = false;
+
+function ensureSSRShaderCompatibility() {
+  if (hasPatchedSSRShader) {
+    return;
+  }
+
+  const shader = SSRShader as unknown as {
+    uniforms: SSRUniformRecord;
+    defines: SSRDefineRecord;
+  };
+
+  if (!shader.uniforms.thickness) {
+    const fallback = shader.uniforms.thickTolerance ?? { value: 0.03 };
+    shader.uniforms.thickness = { value: fallback.value };
+  }
+
+  if (!shader.uniforms.thickTolerance) {
+    shader.uniforms.thickTolerance = shader.uniforms.thickness;
+  }
+
+  const mapDefine = (legacyKey: string, modernKey: string, defaultValue: unknown) => {
+    if (shader.defines[legacyKey] === undefined) {
+      shader.defines[legacyKey] = shader.defines[modernKey] ?? defaultValue;
+    }
+  };
+
+  mapDefine('DISTANCE_ATTENUATION', 'isDistanceAttenuation', false);
+  mapDefine('FRESNEL', 'isFresnel', true);
+  mapDefine('INFINITE_THICK', 'isInfiniteThick', false);
+
+  hasPatchedSSRShader = true;
+}
+
+function patchSSRPass(pass: SSRPass) {
+  const material = (pass as unknown as { ssrMaterial?: THREE.ShaderMaterial }).ssrMaterial;
+  if (!material) {
+    return;
+  }
+
+  const uniforms = material.uniforms as SSRUniformRecord | undefined;
+  if (uniforms) {
+    if (!uniforms.thickness && uniforms.thickTolerance) {
+      uniforms.thickness = uniforms.thickTolerance;
+    } else if (uniforms.thickness && !uniforms.thickTolerance) {
+      uniforms.thickTolerance = uniforms.thickness;
+    }
+  }
+
+  const defines = material.defines as SSRDefineRecord | undefined;
+  const syncDefines = () => {
+    if (!defines) {
+      return;
+    }
+    if (defines.DISTANCE_ATTENUATION !== undefined) {
+      defines.isDistanceAttenuation = defines.DISTANCE_ATTENUATION;
+    }
+    if (defines.FRESNEL !== undefined) {
+      defines.isFresnel = defines.FRESNEL;
+    }
+    if (defines.INFINITE_THICK !== undefined) {
+      defines.isInfiniteThick = defines.INFINITE_THICK;
+    }
+  };
+
+  syncDefines();
+
+  const patchToggle = (key: 'distanceAttenuation' | 'fresnel' | 'infiniteThick', legacy: string, modern: string) => {
+    const descriptor = Object.getOwnPropertyDescriptor(pass, key);
+    if (!descriptor) {
+      return;
+    }
+
+    const { get, set, enumerable } = descriptor;
+
+    Object.defineProperty(pass, key, {
+      configurable: true,
+      enumerable,
+      get() {
+        if (get) {
+          return get.call(pass);
+        }
+        return descriptor.value;
+      },
+      set(value) {
+        if (set) {
+          set.call(pass, value);
+        } else {
+          descriptor.value = value;
+        }
+        if (defines) {
+          defines[legacy] = value;
+          defines[modern] = value;
+          material.needsUpdate = true;
+        }
+      }
+    });
+
+    const initial = get ? get.call(pass) : descriptor.value;
+    if (initial !== undefined) {
+      (pass as unknown as Record<string, unknown>)[key] = initial;
+    }
+  };
+
+  patchToggle('distanceAttenuation', 'DISTANCE_ATTENUATION', 'isDistanceAttenuation');
+  patchToggle('fresnel', 'FRESNEL', 'isFresnel');
+  patchToggle('infiniteThick', 'INFINITE_THICK', 'isInfiniteThick');
+
+  let thicknessValue = pass.thickness;
+  Object.defineProperty(pass, 'thickness', {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return thicknessValue;
+    },
+    set(value: number) {
+      thicknessValue = value;
+      if (!uniforms) {
+        return;
+      }
+      if (uniforms.thickness) {
+        uniforms.thickness.value = value;
+      }
+      if (uniforms.thickTolerance) {
+        uniforms.thickTolerance.value = value;
+      }
+    }
+  });
+
+  pass.thickness = thicknessValue;
+}
 
 const BASE_COLOR = new THREE.Color('#07090f');
 const ACCENT_COLOR = new THREE.Color('#d6ba7f');
@@ -200,6 +335,8 @@ function ScreenSpaceReflections({ enabled }: { enabled: boolean }) {
       };
     }
 
+    ensureSSRShaderCompatibility();
+
     const pass = new SSRPass({
       renderer: gl,
       scene,
@@ -208,12 +345,14 @@ function ScreenSpaceReflections({ enabled }: { enabled: boolean }) {
       groundReflector: null
     });
 
+    patchSSRPass(pass);
+
     pass.opacity = 0.82;
     pass.maxDistance = 12;
     pass.thickness = 0.36;
     pass.blur = true;
-    pass.isDistanceAttenuation = true;
-    pass.isFresnel = true;
+    (pass as unknown as { distanceAttenuation: boolean }).distanceAttenuation = true;
+    (pass as unknown as { fresnel: boolean }).fresnel = true;
     passRef.current = pass;
     composerPassRef.current = pass as unknown as Pass;
     composer.addPass(composerPassRef.current);

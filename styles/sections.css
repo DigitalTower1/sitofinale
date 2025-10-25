@@ -12,38 +12,21 @@
   min-height: 100vh;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: var(--panel-padding) 0;
+  padding: clamp(4rem, 10vw, 6.5rem) clamp(1.5rem, 6vw, 4rem);
   overflow: visible;
   background: radial-gradient(circle at top, rgba(4, 5, 8, 0.85), rgba(2, 3, 6, 0.94));
 }
 
 .story-panel__inner {
-  width: var(--panel-max-width);
+  width: min(var(--panel-max-width), 100%);
   margin: 0 auto;
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   gap: clamp(2.5rem, 5vw, 4rem);
-  max-height: calc(100vh - 2 * var(--panel-padding));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-}
-
-.story-panel__inner::-webkit-scrollbar {
-  width: 6px;
-}
-
-.story-panel__inner::-webkit-scrollbar-thumb {
-  background: rgba(216, 187, 125, 0.35);
-  border-radius: 999px;
-}
-
-.story-panel__inner::-webkit-scrollbar-track {
-  background: transparent;
 }
 
 .story-panel__header {
@@ -95,7 +78,7 @@
   color: rgba(244, 244, 250, 0.86);
 }
 
-.card--marble::after {
+.card--carbon::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -916,7 +899,11 @@
 
 @media (max-width: 768px) {
   .story-panel {
-    padding: clamp(2.5rem, 14vw, 4rem) 0;
+    padding: clamp(3rem, 16vw, 5rem) clamp(1.25rem, 7vw, 2.5rem);
+  }
+
+  .story-panel__inner {
+    gap: clamp(2rem, 8vw, 3rem);
   }
 
   .hero-copy__metrics {

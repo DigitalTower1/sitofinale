@@ -9,6 +9,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 const PANEL_SELECTOR = '[data-story-panel]';
 
+function clearPanelStyles(panel: HTMLElement) {
+  panel.style.removeProperty('opacity');
+  panel.style.removeProperty('pointer-events');
+  panel.style.removeProperty('transform');
+  panel.style.removeProperty('scale');
+  panel.style.removeProperty('will-change');
+}
+
 export function CinematicScrollController() {
   const { reducedMotion } = useMotionPreferences();
 
@@ -19,92 +27,132 @@ export function CinematicScrollController() {
     }
 
     if (reducedMotion) {
-      panels.forEach((panel) => {
-        panel.style.removeProperty('opacity');
-        panel.style.removeProperty('pointerEvents');
-        panel.style.removeProperty('transform');
-      });
+      panels.forEach(clearPanelStyles);
       return;
     }
 
     const trackedTriggers: ScrollTrigger[] = [];
 
-    const ctx = gsap.context(() => {
-      gsap.set(panels, {
-        opacity: 0,
-        pointerEvents: 'none',
-        zIndex: (index) => panels.length - index,
+    const killTrackedTriggers = () => {
+      while (trackedTriggers.length) {
+        const trigger = trackedTriggers.pop();
+        trigger?.kill();
+      }
+    };
+
+    const activatePanel = (index: number) => {
+      panels.forEach((panel, panelIndex) => {
+        panel.style.pointerEvents = panelIndex === index ? 'auto' : 'none';
       });
+    };
+
+    const deactivatePanel = (index: number) => {
+      const panel = panels[index];
+      if (panel) {
+        panel.style.pointerEvents = 'none';
+      }
+    };
+
+    const buildTimelines = () => {
+      killTrackedTriggers();
+      gsap.killTweensOf(panels);
+
+      gsap.set(panels, {
+        autoAlpha: 0,
+        pointerEvents: 'none',
+        scale: 0.98,
+        yPercent: 8,
+        zIndex: (index) => panels.length - index,
+        transformOrigin: '50% 50%',
+        willChange: 'opacity, transform',
+      });
+
       if (panels[0]) {
-        gsap.set(panels[0], { opacity: 1, pointerEvents: 'auto' });
+        gsap.set(panels[0], { autoAlpha: 1, pointerEvents: 'auto', scale: 1, yPercent: 0 });
       }
 
       panels.forEach((panel, index) => {
-        const timeline = gsap
-          .timeline({
-            defaults: { ease: 'power3.inOut' },
-            scrollTrigger: {
-              trigger: panel,
-              start: 'top top',
-              end: '+=140%',
-              pin: true,
-              pinSpacing: false,
-              scrub: true,
-              anticipatePin: 1,
-              snap: {
-                snapTo: (value) => Math.round(value),
-                duration: { min: 0.6, max: 1.4 },
-                ease: 'power4.out',
-              },
-              onEnter: () => {
-                gsap.to(panel, { opacity: 1, pointerEvents: 'auto', duration: 0.8, ease: 'power3.out' });
-                if (panels[index - 1]) {
-                  gsap.to(panels[index - 1], {
-                    opacity: 0,
-                    pointerEvents: 'none',
-                    duration: 0.6,
-                    ease: 'power2.in',
-                  });
-                }
-              },
-              onEnterBack: () => {
-                gsap.to(panel, { opacity: 1, pointerEvents: 'auto', duration: 0.7, ease: 'power3.out' });
-                if (panels[index + 1]) {
-                  gsap.to(panels[index + 1], {
-                    opacity: 0,
-                    pointerEvents: 'none',
-                    duration: 0.5,
-                    ease: 'power2.in',
-                  });
-                }
-              },
-              onLeave: () => {
-                gsap.to(panel, { opacity: 0, pointerEvents: 'none', duration: 0.6, ease: 'power2.in' });
-              },
-              onLeaveBack: () => {
-                gsap.to(panel, { opacity: 0, pointerEvents: 'none', duration: 0.6, ease: 'power2.in' });
-              },
-            },
-          })
+        const shouldPin = panel.offsetHeight <= window.innerHeight * 0.92;
+
+        const scrollTriggerConfig: ScrollTrigger.Vars = {
+          trigger: panel,
+          start: shouldPin ? 'top top' : 'top 80%',
+          end: shouldPin
+            ? () => `+=${Math.max(window.innerHeight * 0.9, panel.offsetHeight * 0.85)}`
+            : 'bottom top',
+          scrub: shouldPin ? 0.8 : 0.5,
+          pin: shouldPin,
+          pinSpacing: shouldPin,
+          anticipatePin: shouldPin ? 0.8 : 0,
+          onEnter: () => activatePanel(index),
+          onEnterBack: () => activatePanel(index),
+          onLeave: () => deactivatePanel(index),
+          onLeaveBack: () => deactivatePanel(index),
+        };
+
+        if (shouldPin) {
+          scrollTriggerConfig.snap = {
+            snapTo: [0, 1],
+            duration: { min: 0.45, max: 0.9 },
+            ease: 'power3.out',
+          };
+        }
+
+        const timeline = gsap.timeline({
+          defaults: { ease: 'none' },
+          scrollTrigger: scrollTriggerConfig,
+        });
+
+        timeline
           .fromTo(
             panel,
-            { filter: 'blur(14px)', opacity: index === 0 ? 1 : 0 },
-            { filter: 'blur(0px)', opacity: 1, duration: 0.6 },
+            { autoAlpha: index === 0 ? 1 : 0, yPercent: 12, scale: 0.94 },
+            { autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.52, ease: 'power3.out' },
             0
           )
-          .to(panel, { opacity: 0, filter: 'blur(12px)', duration: 0.8, ease: 'power2.in' }, 0.6);
+          .to(panel, { autoAlpha: 0, yPercent: -10, scale: 0.97, duration: 0.48, ease: 'power2.inOut' }, 0.68);
 
         if (timeline.scrollTrigger) {
           trackedTriggers.push(timeline.scrollTrigger);
         }
       });
+    };
 
-      ScrollTrigger.refresh();
-    });
+    buildTimelines();
+    ScrollTrigger.refresh();
+
+    let rebuildRaf = 0;
+    const requestRebuild = () => {
+      if (rebuildRaf) {
+        cancelAnimationFrame(rebuildRaf);
+      }
+      rebuildRaf = requestAnimationFrame(() => {
+        buildTimelines();
+        ScrollTrigger.refresh();
+      });
+    };
+
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            requestRebuild();
+          })
+        : null;
+    panels.forEach((panel) => resizeObserver?.observe(panel));
+
+    const handleResize = () => requestRebuild();
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      trackedTriggers.forEach((trigger) => trigger.kill());
-      ctx.revert();
+      window.removeEventListener('resize', handleResize);
+      resizeObserver?.disconnect();
+      if (rebuildRaf) {
+        cancelAnimationFrame(rebuildRaf);
+      }
+      killTrackedTriggers();
+      panels.forEach((panel) => {
+        gsap.set(panel, { clearProps: 'opacity,transform,pointer-events,will-change' });
+      });
     };
   }, [reducedMotion]);
 

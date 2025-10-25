@@ -9,9 +9,11 @@ interface HeroCopyProps {
   reducedMotion: boolean;
 }
 
+const CTA_EASE = (t: number) => 1 - Math.pow(1 - t, 3);
+
 const CTA_VARIANTS = {
   initial: { opacity: 0, y: 32, scale: 0.94 },
-  enter: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] } },
+  enter: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.9, ease: CTA_EASE } },
   hover: { scale: 1.02 },
   tap: { scale: 0.98 }
 };

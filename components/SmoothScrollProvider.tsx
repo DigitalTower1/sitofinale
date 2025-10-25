@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import Lenis from '@studio-freight/lenis';
+import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -17,11 +17,11 @@ export function useLenisInstance() {
 
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
-  const frameRef = useRef<number>();
+  const frameRef = useRef<number | null>(null);
   const [lenis, setLenis] = useState<Lenis | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || lenisRef.current) {
+    if (typeof window === 'undefined') {
       return;
     }
 
@@ -31,24 +31,43 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      smoothTouch: false,
+      syncTouch: false,
       touchMultiplier: 1.5,
       infinite: false
     });
 
+    const root = document.documentElement;
+
     lenisRef.current = instance;
-    setLenis(instance);
+
+    const schedule = (fn: () => void) => {
+      if (typeof queueMicrotask === 'function') {
+        queueMicrotask(fn);
+      } else {
+        Promise.resolve().then(fn).catch(() => fn());
+      }
+    };
+
+    schedule(() => setLenis(instance));
 
     const update = (time: number) => {
       instance.raf(time);
-      frameRef.current = requestAnimationFrame(update);
+      frameRef.current = window.requestAnimationFrame(update);
     };
 
-    frameRef.current = requestAnimationFrame(update);
+    frameRef.current = window.requestAnimationFrame(update);
 
-    instance.on('scroll', ScrollTrigger.update);
+    const handleResize = () => {
+      instance.resize();
+    };
 
-    ScrollTrigger.scrollerProxy(document.documentElement, {
+    const handleScrollUpdate = () => {
+      ScrollTrigger.update();
+    };
+
+    instance.on('scroll', handleScrollUpdate);
+
+    ScrollTrigger.scrollerProxy(root, {
       scrollTop(value) {
         if (typeof value === 'number') {
           instance.scrollTo(value, { immediate: true });
@@ -67,25 +86,22 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       pinType: document.body.style.transform ? 'transform' : 'fixed'
     });
 
-    const handleResize = () => {
-      instance.resize();
-    };
-
     window.addEventListener('resize', handleResize);
-
     ScrollTrigger.addEventListener('refresh', handleResize);
-    ScrollTrigger.defaults({ scroller: document.documentElement });
+    ScrollTrigger.defaults({ scroller: root });
 
     return () => {
       window.removeEventListener('resize', handleResize);
       ScrollTrigger.removeEventListener('refresh', handleResize);
-      if (frameRef.current) {
+      if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current);
       }
+      instance.off('scroll', handleScrollUpdate);
       instance.destroy();
-      ScrollTrigger.scrollerProxy(document.documentElement, null as unknown as ScrollTrigger.Vars);
+      ScrollTrigger.scrollerProxy(root, null as unknown as ScrollTrigger.Vars);
       lenisRef.current = null;
-      setLenis(null);
+      frameRef.current = null;
+      schedule(() => setLenis(null));
     };
   }, []);
 

@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { EffectComposer, SSR, Bloom, Vignette, GodRays, ToneMapping } from '@react-three/postprocessing';
-import { ToneMappingMode } from 'postprocessing';
+import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber';
+import { EffectComposer, Bloom, Vignette, GodRays, ToneMapping, EffectComposerContext } from '@react-three/postprocessing';
+import { Pass, ToneMappingMode } from 'postprocessing';
 import {
   Environment,
   Float,
@@ -16,6 +16,7 @@ import {
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMotionPreferences } from '../../hooks/useMotionPreferences';
+import { SSRPass } from 'three-stdlib';
 
 const BASE_COLOR = new THREE.Color('#07090f');
 const ACCENT_COLOR = new THREE.Color('#d6ba7f');
@@ -38,16 +39,14 @@ function CameraRig() {
 
 function OrbitingFragments() {
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const fragments = useMemo(
-    () =>
-      Array.from({ length: 24 }).map(() => ({
-        radius: 1.4 + Math.random() * 0.8,
-        speed: 0.2 + Math.random() * 0.4,
-        vertical: Math.random() * 1.2,
-        tilt: Math.random() * Math.PI * 2,
-        scale: 0.12 + Math.random() * 0.22
-      })),
-    []
+  const [fragments] = useState(() =>
+    Array.from({ length: 24 }).map(() => ({
+      radius: 1.4 + Math.random() * 0.8,
+      speed: 0.2 + Math.random() * 0.4,
+      vertical: Math.random() * 1.2,
+      tilt: Math.random() * Math.PI * 2,
+      scale: 0.12 + Math.random() * 0.22
+    }))
   );
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -86,7 +85,7 @@ function OrbitingFragments() {
 
 function DustField() {
   const points = useRef<THREE.Points>(null);
-  const positions = useMemo(() => {
+  const [positions] = useState(() => {
     const arr = new Float32Array(4800);
     for (let i = 0; i < arr.length; i += 3) {
       const theta = Math.random() * Math.PI * 2;
@@ -97,7 +96,7 @@ function DustField() {
       arr[i + 2] = Math.sin(theta) * radius;
     }
     return arr;
-  }, []);
+  });
 
   useFrame((state) => {
     if (!points.current) return;
@@ -108,7 +107,7 @@ function DustField() {
   return (
     <points ref={points} frustumCulled={false}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={positions.length / 3} itemSize={3} array={positions} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial color={ACCENT_COLOR} size={0.04} sizeAttenuation transparent opacity={0.32} depthWrite={false} />
     </points>
@@ -169,26 +168,99 @@ function Prism({ sunRef }: { sunRef: React.MutableRefObject<THREE.Mesh | null> }
   );
 }
 
+function ScreenSpaceReflections({ enabled }: { enabled: boolean }) {
+  const { gl, scene, camera, size } = useThree();
+  const { composer } = useContext(EffectComposerContext);
+  const passRef = useRef<SSRPass | null>(null);
+  const composerPassRef = useRef<Pass | null>(null);
+
+  useEffect(() => {
+    if (!composer) {
+      return () => {};
+    }
+
+    if (!enabled) {
+      if (passRef.current && composerPassRef.current) {
+        composer.removePass(composerPassRef.current);
+        passRef.current.dispose();
+        passRef.current = null;
+        composerPassRef.current = null;
+      }
+      return () => {};
+    }
+
+    if (passRef.current && composerPassRef.current) {
+      return () => {
+        if (passRef.current && composerPassRef.current) {
+          composer.removePass(composerPassRef.current);
+          passRef.current.dispose();
+          passRef.current = null;
+          composerPassRef.current = null;
+        }
+      };
+    }
+
+    const pass = new SSRPass({
+      renderer: gl,
+      scene,
+      camera,
+      selects: null,
+      groundReflector: null
+    });
+
+    pass.opacity = 0.82;
+    pass.maxDistance = 12;
+    pass.thickness = 0.36;
+    pass.blur = true;
+    pass.isDistanceAttenuation = true;
+    pass.isFresnel = true;
+    passRef.current = pass;
+    composerPassRef.current = pass as unknown as Pass;
+    composer.addPass(composerPassRef.current);
+
+    return () => {
+      if (passRef.current && composerPassRef.current) {
+        composer.removePass(composerPassRef.current);
+        passRef.current.dispose();
+        passRef.current = null;
+        composerPassRef.current = null;
+      }
+    };
+  }, [enabled, composer, gl, scene, camera]);
+
+  useEffect(() => {
+    if (!enabled || !passRef.current) {
+      return;
+    }
+    passRef.current.setSize(size.width, size.height);
+  }, [enabled, size.width, size.height]);
+
+  return null;
+}
+
 function HeroExperience({ enableEffects, onReady }: { enableEffects: boolean; onReady: () => void }) {
   const sunRef = useRef<THREE.Mesh>(null);
   const { gl, scene } = useThree();
   const { active } = useProgress();
-
-  useEffect(() => {
-    gl.physicallyCorrectLights = true;
-    gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.outputColorSpace = THREE.SRGBColorSpace;
-    gl.shadowMap.enabled = true;
-    gl.shadowMap.type = THREE.PCFSoftShadowMap;
-    scene.background = BASE_COLOR;
-    scene.fog = new THREE.Fog(BASE_COLOR.clone().offsetHSL(0, 0, 0.08), 10, 28);
-  }, [gl, scene]);
+  const [sunTarget, setSunTarget] = useState<THREE.Mesh | null>(null);
 
   useEffect(() => {
     if (!active) {
       onReady();
     }
   }, [active, onReady]);
+
+  useEffect(() => {
+    if (!enableEffects) {
+      return;
+    }
+    const id = window.requestAnimationFrame(() => {
+      setSunTarget(sunRef.current);
+    });
+    return () => {
+      window.cancelAnimationFrame(id);
+    };
+  }, [enableEffects]);
 
   return (
     <>
@@ -220,30 +292,18 @@ function HeroExperience({ enableEffects, onReady }: { enableEffects: boolean; on
         <span>Immersive Growth Suite 2024</span>
       </Html>
       <Preload all />
-      <EffectComposer disableNormalPass={!enableEffects} multisampling={enableEffects ? 2 : 0}>
-        {enableEffects && (
-          <SSR
-            temporalResolve
-            STRETCH_MISSED_RAYS
-            USE_MRT
-            intensity={1.05}
-            exponent={1.2}
-            distance={10}
-            fade={0.8}
-            roughnessFade={1}
-            maxRoughness={0.85}
-            thickness={10}
-            ior={1.15}
-            maxDepthDifference={0.4}
-            blend={0.95}
-          />
+      <EffectComposer enableNormalPass={enableEffects} multisampling={enableEffects ? 2 : 0}>
+        <ScreenSpaceReflections enabled={enableEffects} />
+        {enableEffects ? (
+          <Bloom intensity={0.7} luminanceThreshold={0.32} luminanceSmoothing={0.18} mipmapBlur />
+        ) : (
+          <></>
         )}
-        {enableEffects && <Bloom intensity={0.7} luminanceThreshold={0.32} luminanceSmoothing={0.18} mipmapBlur />}
         <ToneMapping adaptive={false} mode={ToneMappingMode.ACES_FILMIC} />
         <Vignette eskil={false} offset={0.32} darkness={0.45} />
-        {enableEffects && sunRef.current && (
+        {enableEffects && sunTarget ? (
           <GodRays
-            sun={sunRef.current}
+            sun={sunTarget}
             samples={80}
             density={0.9}
             decay={0.94}
@@ -252,6 +312,8 @@ function HeroExperience({ enableEffects, onReady }: { enableEffects: boolean; on
             clampMax={1}
             blur
           />
+        ) : (
+          <></>
         )}
       </EffectComposer>
     </>
@@ -273,42 +335,64 @@ export function HeroScene() {
   const { reducedMotion } = useMotionPreferences();
   const [mounted, setMounted] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.matchMedia('(max-width: 768px)').matches;
+  });
 
   useEffect(() => {
-    setMounted(true);
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const rafId = window.requestAnimationFrame(() => {
+      setMounted(true);
+    });
+
     const mq = window.matchMedia('(max-width: 768px)');
-    const update = (event: MediaQueryList | MediaQueryListEvent) => {
+    const handleChange = (event: MediaQueryListEvent) => {
       setIsMobile(event.matches);
     };
-    update(mq);
+
     if (typeof mq.addEventListener === 'function') {
-      mq.addEventListener('change', update);
-      return () => mq.removeEventListener('change', update);
+      mq.addEventListener('change', handleChange);
+      return () => {
+        window.cancelAnimationFrame(rafId);
+        mq.removeEventListener('change', handleChange);
+      };
     }
-    mq.addListener(update);
-    return () => mq.removeListener(update);
+
+    mq.addListener(handleChange);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      mq.removeListener(handleChange);
+    };
   }, []);
 
   const handleReady = useCallback(() => {
     setIsReady(true);
   }, []);
 
-  const shouldFallback = !mounted || reducedMotion || isMobile;
+  const handleCanvasCreated = useCallback(({ gl, scene }: RootState) => {
+    gl.toneMapping = THREE.ACESFilmicToneMapping;
+    gl.outputColorSpace = THREE.SRGBColorSpace;
+    gl.shadowMap.enabled = true;
+    gl.shadowMap.type = THREE.PCFSoftShadowMap;
+    scene.background = BASE_COLOR;
+    scene.fog = new THREE.Fog(BASE_COLOR.clone().offsetHSL(0, 0, 0.08), 10, 28);
+  }, []);
 
-  useEffect(() => {
-    if (shouldFallback) {
-      setIsReady(true);
-    }
-  }, [shouldFallback]);
+  const shouldFallback = !mounted || reducedMotion || isMobile;
+  const sceneReady = shouldFallback || isReady;
 
   return (
     <div
-      className={clsx('hero-scene', { 'hero-scene--fallback': shouldFallback, 'hero-scene--ready': isReady })}
+      className={clsx('hero-scene', { 'hero-scene--fallback': shouldFallback, 'hero-scene--ready': sceneReady })}
       data-reduced-motion={reducedMotion ? 'true' : 'false'}
     >
-      {shouldFallback && <FallbackPoster loading={!isReady} />}
+      {shouldFallback && <FallbackPoster loading={!sceneReady} />}
       {mounted && !shouldFallback && (
         <Suspense fallback={<FallbackPoster loading />}>
           <Canvas
@@ -316,7 +400,7 @@ export function HeroScene() {
             shadows
             gl={{ antialias: true, stencil: false, depth: true, powerPreference: 'high-performance' }}
             dpr={[1, 1.6]}
-            onCreated={() => setIsReady(true)}
+            onCreated={handleCanvasCreated}
           >
             <Suspense fallback={null}>
               <HeroExperience enableEffects={!reducedMotion} onReady={handleReady} />

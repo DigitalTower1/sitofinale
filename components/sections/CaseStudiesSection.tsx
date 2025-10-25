@@ -1,219 +1,60 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
+import clsx from 'clsx';
 import { useMotionPreferences } from '../../hooks/useMotionPreferences';
+import { caseStudies } from '../../content/case-studies';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const heroCase = {
-  slug: 'aurum-atelier',
-  title: 'Aurum Atelier',
-  tagline: 'Inspirational Arc — dalle botteghe storiche a un impero digitale.',
-  story: [
-    {
-      title: 'Inspire',
-      copy:
-        'Abbiamo raccontato la storia della maison con una regia WebGL ispirata alle installazioni immersive di Immersive Garden: camera dolly, luce volumetrica e materiali champagne.'
-    },
-    {
-      title: 'Ignite',
-      copy:
-        'Abbiamo orchestrato campagne Meta + TikTok con storytelling magnetico, mentre un configuratore PBR ha reso tangibile la collezione bespoke.'
-    },
-    {
-      title: 'Impact',
-      copy:
-        'Dashboard KPI in tempo reale: +3.8x revenue e +214% lead qualificati, mantenendo INP medio a 96ms su mobile premium.'
-    }
-  ],
-  metrics: ['+3.8x revenue YoY', '98ms INP', '45 giorni go-live'],
-  excerpt:
-    'Case study flagship che dimostra come la nostra torre trasformi heritage in crescita esponenziale con motion e performance bilanciati.'
-};
-
-const supportingCases = [
-  {
-    slug: 'veloce-motors',
-    title: 'Veloce Motors',
-    excerpt: 'Lancio hypercar elettrica con configuratore WebGPU, campagne omnicanale e lead scoring predittivo.',
-    metrics: ['3.2x ROAS', '14 giorni time-to-launch']
-  },
-  {
-    slug: 'palazzo-saffron',
-    title: 'Palazzo Saffron',
-    excerpt: 'Collezione hospitality ultra luxury con AR concierge e identità multisensoriale.',
-    metrics: ['+89% richieste private', 'NPS 72']
-  }
-];
-
 export function CaseStudiesSection() {
-  const container = useRef<HTMLDivElement>(null);
+  const container = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
   const { reducedMotion } = useMotionPreferences();
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    if (reducedMotion || !container.current) return;
-    const cleanups: Array<() => void> = [];
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        '.cases__hero',
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          ease: 'power3.out',
-          duration: 1,
-          scrollTrigger: {
-            trigger: '.cases__hero',
-            start: 'top 80%'
-          }
-        }
-      );
-
-      gsap.to('.cases__hero-gradient', {
-        backgroundPosition: '120% 40%',
-        duration: 18,
-        ease: 'none',
-        repeat: -1
-      });
-
-      gsap.to('.cases__hero-orb', {
-        yPercent: -12,
-        xPercent: 10,
-        scale: 1.08,
-        duration: 6.5,
-        ease: 'sine.inOut',
-        repeat: -1,
-        yoyo: true
-      });
-
-      gsap.to('.case-card__flare', {
-        opacity: 0.8,
-        scale: 1.05,
-        duration: 5.5,
-        ease: 'sine.inOut',
-        repeat: -1,
-        yoyo: true,
-        stagger: 0.2
-      });
-
-      gsap.utils.toArray<HTMLElement>('.cases__chapter').forEach((chapter, index) => {
-        gsap.fromTo(
-          chapter,
-          { opacity: 0, y: 24 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: chapter,
-              start: 'top 85%'
-            },
-            delay: index * 0.08
-          }
-        );
-      });
-
-      gsap.fromTo(
-        '.cases__supporting',
-        { opacity: 0, xPercent: 8 },
-        {
-          opacity: 1,
-          xPercent: 0,
-          ease: 'power3.out',
-          duration: 0.9,
-          scrollTrigger: {
-            trigger: '.cases__supporting',
-            start: 'top 85%'
-          }
-        }
-      );
-    }, container);
-
-    const heroVisual = container.current.querySelector<HTMLElement>('.cases__hero-visual');
-    if (heroVisual) {
-      gsap.set(heroVisual, { transformPerspective: 900 });
-      const rotateX = gsap.quickTo(heroVisual, 'rotationX', { duration: 0.6, ease: 'power3.out' });
-      const rotateY = gsap.quickTo(heroVisual, 'rotationY', { duration: 0.6, ease: 'power3.out' });
-      const orb = heroVisual.querySelector<HTMLElement>('.cases__hero-orb');
-
-      const handleMove = (event: PointerEvent) => {
-        const rect = heroVisual.getBoundingClientRect();
-        const relX = (event.clientX - rect.left) / rect.width;
-        const relY = (event.clientY - rect.top) / rect.height;
-        rotateY((relX - 0.5) * 18);
-        rotateX(-(relY - 0.5) * 14);
-        if (orb) {
-          gsap.to(orb, {
-            x: (relX - 0.5) * 60,
-            y: (relY - 0.5) * 40,
-            duration: 0.6,
-            ease: 'power3.out'
-          });
-        }
-      };
-
-      const reset = () => {
-        rotateX(0);
-        rotateY(0);
-        if (orb) {
-          gsap.to(orb, { x: 0, y: 0, duration: 0.8, ease: 'power3.out' });
-        }
-      };
-
-      heroVisual.addEventListener('pointermove', handleMove);
-      heroVisual.addEventListener('pointerleave', reset);
-      cleanups.push(() => {
-        heroVisual.removeEventListener('pointermove', handleMove);
-        heroVisual.removeEventListener('pointerleave', reset);
-      });
+    const section = container.current;
+    const rail = railRef.current;
+    if (!section || !rail || reducedMotion) {
+      return;
     }
 
-    const cards = container.current.querySelectorAll<HTMLElement>('.case-card');
-    cards.forEach((card) => {
-      gsap.set(card, { transformPerspective: 700 });
-      const flare = card.querySelector<HTMLElement>('.case-card__flare');
-      const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
-      const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
+    const ctx = gsap.context(() => {
+      gsap.set(rail, { '--active-index': 0 });
+      const slides = Array.from(rail.querySelectorAll<HTMLElement>('.portfolio-carousel__slide'));
 
-      const handleMove = (event: PointerEvent) => {
-        const rect = card.getBoundingClientRect();
-        const relX = (event.clientX - rect.left) / rect.width;
-        const relY = (event.clientY - rect.top) / rect.height;
-        rotateY((relX - 0.5) * 12);
-        rotateX(-(relY - 0.5) * 10);
-
-        if (flare) {
-          gsap.to(flare, {
-            x: (relX - 0.5) * 50,
-            y: (relY - 0.5) * 50,
-            duration: 0.5,
-            ease: 'power3.out'
-          });
-        }
-      };
-
-      const reset = () => {
-        rotateX(0);
-        rotateY(0);
-        if (flare) {
-          gsap.to(flare, { x: 0, y: 0, duration: 0.6, ease: 'power3.out' });
-        }
-      };
-
-      card.addEventListener('pointermove', handleMove);
-      card.addEventListener('pointerleave', reset);
-      cleanups.push(() => {
-        card.removeEventListener('pointermove', handleMove);
-        card.removeEventListener('pointerleave', reset);
+      gsap.to(rail, {
+        '--active-index': caseStudies.length - 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top center',
+          end: 'bottom bottom',
+          scrub: 1.1,
+          onUpdate: (self) => {
+            const next = Math.round(self.progress * (caseStudies.length - 1));
+            setActiveIndex(next);
+          },
+        },
       });
-    });
+
+      gsap.to(slides, {
+        z: (index) => (index % 2 === 0 ? 12 : -12),
+        rotationY: (index) => (index % 2 === 0 ? -6 : 6),
+        duration: 4,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        stagger: { amount: 2.4, repeat: -1 },
+      });
+    }, section);
 
     return () => {
-      cleanups.forEach((dispose) => dispose());
       ctx.revert();
     };
   }, [reducedMotion]);
@@ -221,71 +62,61 @@ export function CaseStudiesSection() {
   return (
     <section
       ref={container}
-      className="section cases"
-      aria-labelledby="cases-heading"
-      data-guided-section="case-studies"
+      className="story-panel portfolio-panel"
+      aria-labelledby="portfolio-heading"
+      data-guided-section="portfolio"
+      data-story-panel
     >
-      <div className="section__header">
-        <p className="section__eyebrow">Case Studies</p>
-        <h2 id="cases-heading" className="section__title">
-          Esperienze che trasformano mercati.
-        </h2>
-        <p className="section__description">
-          Collaboriamo con brand visionari per creare storie che restano. Ogni progetto è un ecosistema tra design, contenuti e
-          performance.
-        </p>
-      </div>
-      <article className="cases__hero card--carbon">
-        <div className="cases__hero-visual" aria-hidden>
-          <div className="cases__hero-gradient" />
-          <div className="cases__hero-noise" />
-          <div className="cases__hero-orb" />
-          <div className="cases__hero-highlight">Immersive Garden inspired</div>
+      <div className="story-panel__inner">
+        <div className="story-panel__header">
+          <p className="story-panel__eyebrow">Capitolo · Portfolio</p>
+          <h2 id="portfolio-heading">Case filmici e metriche tangibili.</h2>
+          <p className="story-panel__lead">
+            Una trilogia di progetti che mostra come il nostro studio fonde materiali, sound design e growth per generare
+            impatto misurabile.
+          </p>
         </div>
-        <div className="cases__hero-body">
-          <p className="cases__hero-tagline">{heroCase.tagline}</p>
-          <h3>{heroCase.title}</h3>
-          <p>{heroCase.excerpt}</p>
-          <ul className="cases__hero-metrics">
-            {heroCase.metrics.map((metric) => (
-              <li key={metric}>{metric}</li>
-            ))}
-          </ul>
-          <div className="cases__chapters">
-            {heroCase.story.map((chapter) => (
-              <div key={chapter.title} className="cases__chapter">
-                <span>{chapter.title}</span>
-                <p>{chapter.copy}</p>
-              </div>
+        <div className="portfolio-panel__stage">
+          <div
+            ref={railRef}
+            className="portfolio-carousel"
+            style={{ '--item-count': caseStudies.length } as CSSProperties}
+          >
+            {caseStudies.map((item, index) => (
+              <article
+                key={item.slug}
+                className={clsx('portfolio-carousel__slide', 'card--marble')}
+                data-active={activeIndex === index ? 'true' : 'false'}
+                style={{ '--item-index': index } as CSSProperties}
+              >
+                <div className="portfolio-carousel__label">{`Capitolo 0${index + 1}`}</div>
+                <h3>{item.title}</h3>
+                <p className="portfolio-carousel__summary">{item.summary}</p>
+                <p className="portfolio-carousel__challenge">{item.challenge}</p>
+                <p className="portfolio-carousel__solution">{item.solution}</p>
+                <ul className="portfolio-carousel__metrics">
+                  {item.outcome.map((outcome) => (
+                    <li key={outcome}>{outcome}</li>
+                  ))}
+                </ul>
+                <Link href={`/case-studies/${item.slug}`} className="portfolio-carousel__link">
+                  Guarda il breakdown
+                </Link>
+              </article>
             ))}
           </div>
-          <Link href={`/case-studies/${heroCase.slug}`} className="cases__cta">
-            Esplora il case completo
-          </Link>
+          <div className="portfolio-panel__legend">
+            <p>
+              Carosello "rack-focus": le card scorrono su una pista 3D con profondità variabile, mentre il contenuto attivo
+              rimane in primo piano con luce mirata e texture marmorea.
+            </p>
+            <span className="portfolio-panel__progress" data-active-index={activeIndex + 1}>
+              <span aria-hidden />
+              <span aria-hidden />
+              <span aria-hidden />
+            </span>
+          </div>
         </div>
-      </article>
-      <div className="cases__supporting">
-        {supportingCases.map((caseStudy) => (
-          <Link
-            key={caseStudy.slug}
-            href={`/case-studies/${caseStudy.slug}`}
-            className="case-card card--carbon"
-          >
-            <div className="case-card__frame">
-              <div className="case-card__flare" aria-hidden />
-              <div className="case-card__image" aria-hidden />
-            </div>
-            <div className="case-card__body">
-              <h3>{caseStudy.title}</h3>
-              <p>{caseStudy.excerpt}</p>
-              <ul>
-                {caseStudy.metrics.map((metric) => (
-                  <li key={metric}>{metric}</li>
-                ))}
-              </ul>
-            </div>
-          </Link>
-        ))}
       </div>
     </section>
   );

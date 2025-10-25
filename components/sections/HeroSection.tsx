@@ -15,78 +15,54 @@ export function HeroSection() {
 
   useEffect(() => {
     const element = container.current;
-    if (!element) return;
-    const boxes = Array.from(element.querySelectorAll<HTMLElement>('.hero__letterbox'));
-    boxes.forEach((box) => {
-      if (reducedMotion) {
-        box.style.display = 'none';
-      } else {
-        box.style.removeProperty('display');
-      }
-    });
-  }, [reducedMotion]);
-
-  useEffect(() => {
-    const element = container.current;
-    if (!element || reducedMotion) return;
+    if (!element || reducedMotion) {
+      return;
+    }
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.set('.hero__letterbox', { transformOrigin: 'center' });
-      tl.fromTo(
-        '.hero__letterbox--top',
-        { scaleY: 1, opacity: 1 },
-        { scaleY: 0, duration: 1.4, ease: 'power2.inOut', delay: 0.1 }
-      )
+      const intro = gsap.timeline({ defaults: { ease: 'expo.out' } });
+      intro
         .fromTo(
-          '.hero__letterbox--bottom',
-          { scaleY: 1, opacity: 1 },
-          { scaleY: 0, duration: 1.4, ease: 'power2.inOut' },
-          '<'
+          '.hero-panel__letterbox',
+          { scaleY: 1 },
+          { scaleY: 0, duration: 1.2, stagger: 0.08, transformOrigin: 'center', ease: 'expo.inOut' }
         )
         .from(
-          '.hero-copy [data-hero-letter]',
+          '.hero-copy__meta',
+          { opacity: 0, y: 24, duration: 0.8 },
+          '-=0.6'
+        )
+        .from(
+          '.hero-copy__title-line span',
           {
-            yPercent: 110,
+            yPercent: 120,
             opacity: 0,
-            stagger: { amount: 0.8 },
-            duration: 1.1,
-            ease: 'power3.out'
+            duration: 1,
+            stagger: 0.08,
+            ease: 'expo.out',
           },
           '-=0.8'
         )
         .from(
-          '.hero-copy__actions',
-          {
-            y: 24,
-            opacity: 0,
-            duration: 0.8,
-            ease: 'power3.out'
-          },
+          ['.hero-copy__subtitle', '.hero-copy__actions', '.hero-copy__timeline', '.hero-copy__metrics'],
+          { opacity: 0, y: 36, duration: 0.9, stagger: 0.12, ease: 'power3.out' },
           '-=0.6'
         )
-        .fromTo(
-          '.hero__scroll-hint',
-          { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' },
+        .from(
+          '.hero-panel__scroll-hint',
+          { opacity: 0, y: 12, duration: 0.6, ease: 'power2.out' },
           '-=0.4'
         );
 
-      gsap.to('.hero-copy [data-hero-letter]', {
+      gsap.to('.hero-panel__visual', {
         scrollTrigger: {
           trigger: element,
           start: 'top top',
           end: '+=160%',
-          scrub: 1.1
+          scrub: true,
         },
-        yPercent: (_, target) => {
-          if (target instanceof HTMLElement) {
-            const value = target.dataset.parallax;
-            return value ? Number(value) : -18;
-          }
-          return -18;
-        },
-        ease: 'none'
+        yPercent: 10,
+        ease: 'none',
       });
 
       gsap.to('.hero-copy', {
@@ -94,21 +70,10 @@ export function HeroSection() {
           trigger: element,
           start: 'top top',
           end: '+=160%',
-          scrub: true
+          scrub: true,
         },
-        yPercent: -12,
-        ease: 'none'
-      });
-
-      gsap.to('.hero-scene', {
-        scrollTrigger: {
-          trigger: element,
-          start: 'top top',
-          end: '+=160%',
-          scrub: true
-        },
-        yPercent: 8,
-        ease: 'none'
+        yPercent: -8,
+        ease: 'none',
       });
     }, container);
 
@@ -120,22 +85,29 @@ export function HeroSection() {
   return (
     <section
       ref={container}
-      className="section hero hero--immersive"
+      className="story-panel hero-panel"
       aria-labelledby="hero-heading"
       data-guided-section="hero"
+      data-story-panel
     >
-      <div className="hero__background" aria-hidden>
-        <HeroScene />
-        <div className="hero__vignette" />
+      <div className="hero-panel__backdrop" aria-hidden>
+        <div className="hero-panel__texture hero-panel__texture--carbon" />
+        <div className="hero-panel__texture hero-panel__texture--marble" />
       </div>
-      <div className="hero__content">
-        <HeroCopy reducedMotion={reducedMotion} />
+      <div className="hero-panel__content">
+        <div className="hero-panel__visual">
+          <HeroScene />
+        </div>
+        <div className="hero-panel__copy">
+          <HeroCopy reducedMotion={reducedMotion} />
+        </div>
       </div>
-      <p className="hero__scroll-hint" aria-hidden>
-        Scroll <span aria-hidden>↓</span>
+      <p className="hero-panel__scroll-hint" aria-hidden>
+        Scroll
+        <span>↓</span>
       </p>
-      <div className="hero__letterbox hero__letterbox--top" aria-hidden />
-      <div className="hero__letterbox hero__letterbox--bottom" aria-hidden />
+      <div className="hero-panel__letterbox hero-panel__letterbox--top" aria-hidden />
+      <div className="hero-panel__letterbox hero-panel__letterbox--bottom" aria-hidden />
     </section>
   );
 }

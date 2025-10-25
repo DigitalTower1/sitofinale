@@ -1,518 +1,333 @@
 'use client';
 
-import { Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber';
-import { EffectComposer, Bloom, Vignette, GodRays, ToneMapping, EffectComposerContext } from '@react-three/postprocessing';
-import { Pass, ToneMappingMode } from 'postprocessing';
-import {
-  Environment,
-  Float,
-  Html,
-  Lightformer,
-  PerspectiveCamera,
-  Preload,
-  useProgress
-} from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette, GodRays, ToneMapping } from '@react-three/postprocessing';
+import { Float, Html, PerspectiveCamera, Preload, Environment, Lightformer } from '@react-three/drei';
 import * as THREE from 'three';
+import { ToneMappingMode } from 'postprocessing';
 import { useMotionPreferences } from '../../hooks/useMotionPreferences';
-import { SSRPass, SSRShader } from 'three-stdlib';
 
-type SSRUniformRecord = Record<string, { value: unknown }>;
-type SSRDefineRecord = Record<string, unknown>;
+const BASE_COLOR = new THREE.Color('#040507');
+const ACCENT_COLOR = new THREE.Color('#d8bb7d');
+const MARBLE_COLOR = new THREE.Color('#f0f3ff');
 
-let hasPatchedSSRShader = false;
-
-function ensureSSRShaderCompatibility() {
-  if (hasPatchedSSRShader) {
-    return;
-  }
-
-  const shader = SSRShader as unknown as {
-    uniforms: SSRUniformRecord;
-    defines: SSRDefineRecord;
-  };
-
-  if (!shader.uniforms.thickness) {
-    const fallback = shader.uniforms.thickTolerance ?? { value: 0.03 };
-    shader.uniforms.thickness = { value: fallback.value };
-  }
-
-  if (!shader.uniforms.thickTolerance) {
-    shader.uniforms.thickTolerance = shader.uniforms.thickness;
-  }
-
-  const mapDefine = (legacyKey: string, modernKey: string, defaultValue: unknown) => {
-    if (shader.defines[legacyKey] === undefined) {
-      shader.defines[legacyKey] = shader.defines[modernKey] ?? defaultValue;
+function useCarbonTexture() {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    const size = 256;
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return null;
     }
-  };
 
-  mapDefine('DISTANCE_ATTENUATION', 'isDistanceAttenuation', false);
-  mapDefine('FRESNEL', 'isFresnel', true);
-  mapDefine('INFINITE_THICK', 'isInfiniteThick', false);
+    context.fillStyle = '#0d1016';
+    context.fillRect(0, 0, size, size);
 
-  hasPatchedSSRShader = true;
+    for (let y = 0; y < size; y += 8) {
+      for (let x = 0; x < size; x += 8) {
+        const offset = (x / 8 + y / 8) % 2;
+        const shade = offset ? 22 : 12;
+        context.fillStyle = `rgb(${shade}, ${shade + 4}, ${shade + 8})`;
+        context.fillRect(x, y, 8, 8);
+      }
+    }
+
+    context.globalCompositeOperation = 'overlay';
+    const gradient = context.createLinearGradient(0, 0, size, size);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.15)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0.55)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, size, size);
+    context.globalCompositeOperation = 'source-over';
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.anisotropy = 8;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(6, 6);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }, []);
 }
 
-function patchSSRPass(pass: SSRPass) {
-  const material = (pass as unknown as { ssrMaterial?: THREE.ShaderMaterial }).ssrMaterial;
-  if (!material) {
-    return;
-  }
-
-  const uniforms = material.uniforms as SSRUniformRecord | undefined;
-  if (uniforms) {
-    if (!uniforms.thickness && uniforms.thickTolerance) {
-      uniforms.thickness = uniforms.thickTolerance;
-    } else if (uniforms.thickness && !uniforms.thickTolerance) {
-      uniforms.thickTolerance = uniforms.thickness;
+function useMarbleTexture() {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    const size = 512;
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return null;
     }
-  }
 
-  const SSR_DEFINE_BRIDGE_FLAG = Symbol.for('ssr-define-bridge');
-  let defines = material.defines as (SSRDefineRecord & { [SSR_DEFINE_BRIDGE_FLAG]?: boolean }) | undefined;
-  const togglePairs: Array<[keyof SSRDefineRecord, keyof SSRDefineRecord]> = [
-    ['DISTANCE_ATTENUATION', 'isDistanceAttenuation'],
-    ['FRESNEL', 'isFresnel'],
-    ['INFINITE_THICK', 'isInfiniteThick']
-  ];
+    const baseGradient = context.createLinearGradient(0, 0, size, size);
+    baseGradient.addColorStop(0, '#fdf9f5');
+    baseGradient.addColorStop(0.5, '#e7e2dc');
+    baseGradient.addColorStop(1, '#f5f2ef');
+    context.fillStyle = baseGradient;
+    context.fillRect(0, 0, size, size);
 
-  const defineBridgeMap = new Map<string, string>();
-  togglePairs.forEach(([legacy, modern]) => {
-    defineBridgeMap.set(String(legacy), String(modern));
-    defineBridgeMap.set(String(modern), String(legacy));
-  });
-
-  if (defines && !defines[SSR_DEFINE_BRIDGE_FLAG]) {
-    const originalDefines = defines;
-    const proxy = new Proxy(originalDefines, {
-      get(target, prop, receiver) {
-        return Reflect.get(target, prop, receiver);
-      },
-      set(target, prop, value) {
-        const key = String(prop);
-        const previous = Reflect.get(target, key);
-        if (Object.is(previous, value)) {
-          return true;
-        }
-        const result = Reflect.set(target, key, value);
-        if (!result) {
-          return false;
-        }
-        const counterpart = defineBridgeMap.get(key);
-        if (counterpart) {
-          Reflect.set(target, counterpart, value);
-          material.needsUpdate = true;
-        }
-        return true;
-      }
-    }) as SSRDefineRecord & { [SSR_DEFINE_BRIDGE_FLAG]?: boolean };
-
-    Object.defineProperty(originalDefines, SSR_DEFINE_BRIDGE_FLAG, {
-      value: true,
-      enumerable: false,
-      configurable: false,
-      writable: false
-    });
-
-    Object.defineProperty(proxy, SSR_DEFINE_BRIDGE_FLAG, {
-      value: true,
-      enumerable: false,
-      configurable: false,
-      writable: false
-    });
-
-    material.defines = proxy;
-    defines = proxy;
-  }
-
-  if (defines) {
-    togglePairs.forEach(([legacy, modern]) => {
-      const legacyValue = defines![legacy];
-      const modernValue = defines![modern];
-      if (legacyValue === undefined && modernValue !== undefined) {
-        defines![legacy] = modernValue;
-      } else if (modernValue === undefined && legacyValue !== undefined) {
-        defines![modern] = legacyValue;
-      }
-    });
-  }
-
-  let thicknessValue = pass.thickness;
-  Object.defineProperty(pass, 'thickness', {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return thicknessValue;
-    },
-    set(value: number) {
-      thicknessValue = value;
-      if (!uniforms) {
-        return;
-      }
-      if (uniforms.thickness) {
-        uniforms.thickness.value = value;
-      }
-      if (uniforms.thickTolerance) {
-        uniforms.thickTolerance.value = value;
-      }
+    context.globalAlpha = 0.25;
+    for (let i = 0; i < 90; i += 1) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      const radius = 60 + Math.random() * 140;
+      const grad = context.createRadialGradient(x, y, radius * 0.2, x, y, radius);
+      grad.addColorStop(0, 'rgba(180, 175, 170, 0.35)');
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      context.fillStyle = grad;
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fill();
     }
-  });
+    context.globalAlpha = 1;
 
-  if (!(pass as unknown as { setRenderer?: (renderer: THREE.WebGLRenderer) => void }).setRenderer) {
-    (pass as unknown as { setRenderer: (renderer: THREE.WebGLRenderer) => void }).setRenderer = (renderer) => {
-      const target = pass as unknown as { renderer?: THREE.WebGLRenderer };
-      if (target.renderer !== renderer) {
-        target.renderer = renderer;
-      }
-    };
-  }
-
-  if (
-    !(
-      pass as unknown as {
-        initialize?: (
-          renderer: THREE.WebGLRenderer,
-          alpha: boolean,
-          frameBufferType: number
-        ) => void;
-      }
-    ).initialize
-  ) {
-    (
-      pass as unknown as {
-        initialize: (renderer: THREE.WebGLRenderer, alpha: boolean, frameBufferType: number) => void;
-      }
-    ).initialize = (renderer, _alpha, _frameBufferType) => {
-      const target = pass as unknown as { renderer?: THREE.WebGLRenderer };
-      if (target.renderer !== renderer) {
-        target.renderer = renderer;
-      }
-    };
-  }
-
-  if (
-    !(
-      pass as unknown as {
-        setDepthTexture?: (depthTexture: THREE.Texture | null, depthPacking?: number) => void;
-      }
-    ).setDepthTexture
-  ) {
-    (
-      pass as unknown as {
-        setDepthTexture: (depthTexture: THREE.Texture | null, depthPacking?: number) => void;
-      }
-    ).setDepthTexture = (depthTexture, depthPacking) => {
-      const target = pass as unknown as {
-        depthTexture?: THREE.Texture | null;
-        depthPacking?: number;
-      };
-      target.depthTexture = depthTexture ?? null;
-      if (typeof depthPacking === 'number') {
-        target.depthPacking = depthPacking;
-      }
-    };
-  }
-
-  pass.thickness = thicknessValue;
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(2, 2);
+    texture.anisotropy = 8;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }, []);
 }
-
-const BASE_COLOR = new THREE.Color('#07090f');
-const ACCENT_COLOR = new THREE.Color('#d6ba7f');
-const GLASS_COLOR = new THREE.Color('#151a24');
 
 function CameraRig() {
   const { camera } = useThree();
   const target = useMemo(() => new THREE.Vector3(0, 0.9, 0), []);
-  const desired = useRef(new THREE.Vector3());
+  const smoothed = useRef(new THREE.Vector3(0, 1.2, 6));
 
   useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    desired.current.set(Math.sin(t * 0.18) * 0.8, 1.35 + Math.sin(t * 0.14) * 0.15, 6.2 + Math.sin(t * 0.1) * 0.4);
-    camera.position.lerp(desired.current, 0.035);
+    const time = state.clock.getElapsedTime();
+    smoothed.current.set(
+      Math.sin(time * 0.2) * 1.4,
+      1.4 + Math.sin(time * 0.12) * 0.3,
+      6 + Math.cos(time * 0.16) * 0.5
+    );
+    camera.position.lerp(smoothed.current, 0.04);
     camera.lookAt(target);
   });
 
   return null;
 }
 
-function OrbitingFragments() {
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const [fragments] = useState(() =>
-    Array.from({ length: 24 }).map(() => ({
-      radius: 1.4 + Math.random() * 0.8,
-      speed: 0.2 + Math.random() * 0.4,
-      vertical: Math.random() * 1.2,
-      tilt: Math.random() * Math.PI * 2,
-      scale: 0.12 + Math.random() * 0.22
-    }))
-  );
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+function CarbonStage({ carbonTexture, marbleTexture }: { carbonTexture: THREE.Texture | null; marbleTexture: THREE.Texture | null }) {
+  const stageRef = useRef<THREE.Mesh>(null);
+  const haloRef = useRef<THREE.Mesh>(null);
 
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    const t = state.clock.getElapsedTime();
-    fragments.forEach((fragment, index) => {
-      const angle = t * fragment.speed + fragment.tilt;
-      dummy.position.set(
-        Math.cos(angle) * fragment.radius,
-        fragment.vertical * Math.sin(t * 0.6 + index),
-        Math.sin(angle) * fragment.radius
-      );
-      dummy.scale.setScalar(fragment.scale);
-      dummy.rotation.set(Math.sin(angle) * 0.6, angle, Math.cos(angle * 0.6));
-      dummy.updateMatrix();
-      meshRef.current!.setMatrixAt(index, dummy.matrix);
-    });
-    meshRef.current.instanceMatrix.needsUpdate = true;
-  });
-
-  return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, fragments.length]} castShadow receiveShadow>
-      <dodecahedronGeometry args={[1, 0]} />
-      <meshStandardMaterial
-        color={ACCENT_COLOR}
-        metalness={0.85}
-        roughness={0.28}
-        envMapIntensity={1.2}
-        emissive={ACCENT_COLOR.clone().multiplyScalar(0.25)}
-        emissiveIntensity={0.7}
-      />
-    </instancedMesh>
-  );
-}
-
-function DustField() {
-  const points = useRef<THREE.Points>(null);
-  const [positions] = useState(() => {
-    const arr = new Float32Array(4800);
-    for (let i = 0; i < arr.length; i += 3) {
-      const theta = Math.random() * Math.PI * 2;
-      const radius = 2.2 + Math.random() * 3.4;
-      const y = -0.6 + Math.random() * 3.2;
-      arr[i] = Math.cos(theta) * radius;
-      arr[i + 1] = y;
-      arr[i + 2] = Math.sin(theta) * radius;
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (stageRef.current) {
+      stageRef.current.rotation.y = Math.sin(t * 0.12) * 0.1;
     }
-    return arr;
-  });
-
-  useFrame((state) => {
-    if (!points.current) return;
-    const t = state.clock.getElapsedTime();
-    points.current.rotation.y = t * 0.06;
-  });
-
-  return (
-    <points ref={points} frustumCulled={false}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial color={ACCENT_COLOR} size={0.04} sizeAttenuation transparent opacity={0.32} depthWrite={false} />
-    </points>
-  );
-}
-
-function Prism({ sunRef }: { sunRef: React.MutableRefObject<THREE.Mesh | null> }) {
-  const core = useRef<THREE.Mesh>(null);
-  const halo = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    if (core.current) {
-      core.current.rotation.x = Math.sin(t * 0.32) * 0.4;
-      core.current.rotation.y = t * 0.28;
-    }
-    if (halo.current) {
-      halo.current.position.y = 0.6 + Math.sin(t * 1.4) * 0.24;
-      halo.current.rotation.z = t * 0.6;
+    if (haloRef.current) {
+      haloRef.current.rotation.z = t * 0.18;
     }
   });
 
   return (
-    <group position={[0, 0.4, 0]}>
-      <mesh ref={core} castShadow>
-        <octahedronGeometry args={[0.9, 1]} />
-        <meshPhysicalMaterial
-          color={GLASS_COLOR}
-          transmission={0.88}
-          roughness={0.12}
-          thickness={0.8}
-          reflectivity={1}
-          metalness={0.4}
-          clearcoat={0.8}
-          clearcoatRoughness={0.08}
-        />
-      </mesh>
-      <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.5}>
-        <mesh ref={halo} position={[0, 1.6, 0]}>
-          <ringGeometry args={[1.15, 1.35, 96]} />
-          <meshBasicMaterial color={ACCENT_COLOR} transparent opacity={0.45} />
-        </mesh>
-      </Float>
-      <mesh ref={sunRef} position={[0, 1.6, 0]}>
-        <sphereGeometry args={[0.22, 32, 32]} />
-        <meshBasicMaterial color={ACCENT_COLOR} transparent opacity={0.9} />
-      </mesh>
-      <mesh position={[0, -1.2, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow castShadow>
-        <ringGeometry args={[0.8, 1.6, 64]} />
+    <group>
+      <mesh ref={stageRef} rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -1.4, 0]}>
+        <circleGeometry args={[9, 128]} />
         <meshStandardMaterial
-          color={GLASS_COLOR.clone().lerp(BASE_COLOR, 0.5)}
-          metalness={0.7}
-          roughness={0.24}
-          envMapIntensity={1.1}
+          color={BASE_COLOR.clone().lerp(new THREE.Color('#0d1018'), 0.6)}
+          map={carbonTexture ?? undefined}
+          metalness={0.4}
+          roughness={0.55}
+          envMapIntensity={0.6}
         />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.35, 0]} receiveShadow>
+        <ringGeometry args={[3.8, 4.4, 128]} />
+        <meshStandardMaterial color={'#121620'} metalness={0.6} roughness={0.4} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.38, 0]} receiveShadow>
+        <circleGeometry args={[3.2, 96]} />
+        <meshPhysicalMaterial
+          map={marbleTexture ?? undefined}
+          color={MARBLE_COLOR}
+          roughness={0.18}
+          metalness={0.1}
+          clearcoat={0.6}
+          clearcoatRoughness={0.24}
+        />
+      </mesh>
+      <mesh ref={haloRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]}>
+        <ringGeometry args={[4.5, 5.4, 96]} />
+        <meshBasicMaterial color={ACCENT_COLOR} transparent opacity={0.18} />
       </mesh>
     </group>
   );
 }
 
-function ScreenSpaceReflections({ enabled }: { enabled: boolean }) {
-  const { gl, scene, camera, size } = useThree();
-  const { composer } = useContext(EffectComposerContext);
-  const passRef = useRef<SSRPass | null>(null);
-  const composerPassRef = useRef<Pass | null>(null);
+function CarbonFragments() {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const colors = useMemo(() => [ACCENT_COLOR.clone(), new THREE.Color('#6ab8ff'), new THREE.Color('#f9efe1')], []);
 
-  useEffect(() => {
-    if (!composer) {
-      return () => {};
-    }
+  const fragments = useMemo(
+    () =>
+      Array.from({ length: 36 }).map((_, index) => ({
+        radius: 1.8 + Math.sin(index) * 0.5,
+        offset: Math.random() * Math.PI * 2,
+        speed: 0.18 + Math.random() * 0.12,
+        y: -0.6 + Math.random() * 2.4,
+        scale: 0.14 + Math.random() * 0.18,
+      })),
+    []
+  );
 
-    if (!enabled) {
-      if (passRef.current && composerPassRef.current) {
-        composer.removePass(composerPassRef.current);
-        passRef.current.dispose();
-        passRef.current = null;
-        composerPassRef.current = null;
-      }
-      return () => {};
-    }
-
-    if (passRef.current && composerPassRef.current) {
-      return () => {
-        if (passRef.current && composerPassRef.current) {
-          composer.removePass(composerPassRef.current);
-          passRef.current.dispose();
-          passRef.current = null;
-          composerPassRef.current = null;
-        }
-      };
-    }
-
-    ensureSSRShaderCompatibility();
-
-    const pass = new SSRPass({
-      renderer: gl,
-      scene,
-      camera,
-      selects: null,
-      groundReflector: null
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (!meshRef.current) return;
+    fragments.forEach((fragment, index) => {
+      const angle = t * fragment.speed + fragment.offset;
+      dummy.position.set(
+        Math.cos(angle) * fragment.radius,
+        fragment.y + Math.sin(angle * 2) * 0.4,
+        Math.sin(angle) * fragment.radius
+      );
+      dummy.rotation.set(angle * 0.5, angle, angle * 0.3);
+      dummy.scale.setScalar(fragment.scale + Math.sin(t * 0.8 + index) * 0.04);
+      dummy.updateMatrix();
+      meshRef.current!.setMatrixAt(index, dummy.matrix);
+      const color = colors[index % colors.length];
+      meshRef.current!.setColorAt(index, color);
     });
-
-    patchSSRPass(pass);
-
-    pass.opacity = 0.82;
-    pass.maxDistance = 12;
-    pass.thickness = 0.36;
-    pass.blur = true;
-    (pass as unknown as { distanceAttenuation: boolean }).distanceAttenuation = true;
-    (pass as unknown as { fresnel: boolean }).fresnel = true;
-    passRef.current = pass;
-    composerPassRef.current = pass as unknown as Pass;
-    composer.addPass(composerPassRef.current);
-
-    return () => {
-      if (passRef.current && composerPassRef.current) {
-        composer.removePass(composerPassRef.current);
-        passRef.current.dispose();
-        passRef.current = null;
-        composerPassRef.current = null;
-      }
-    };
-  }, [enabled, composer, gl, scene, camera]);
-
-  useEffect(() => {
-    if (!enabled || !passRef.current) {
-      return;
+    meshRef.current.instanceMatrix.needsUpdate = true;
+    if (meshRef.current.instanceColor) {
+      meshRef.current.instanceColor.needsUpdate = true;
     }
-    passRef.current.setSize(size.width, size.height);
-  }, [enabled, size.width, size.height]);
+  });
 
-  return null;
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, fragments.length]} castShadow>
+      <octahedronGeometry args={[0.7, 0]} />
+      <meshStandardMaterial
+        roughness={0.4}
+        metalness={0.9}
+        emissive={ACCENT_COLOR.clone().multiplyScalar(0.15)}
+        emissiveIntensity={0.8}
+        toneMapped
+      />
+    </instancedMesh>
+  );
 }
 
-function HeroExperience({ enableEffects, onReady }: { enableEffects: boolean; onReady: () => void }) {
-  const sunRef = useRef<THREE.Mesh>(null);
-  const { gl, scene } = useThree();
-  const { active } = useProgress();
+function Ribbon() {
+  const points = useMemo(() => {
+    const curve = new THREE.CatmullRomCurve3(
+      Array.from({ length: 8 }).map((_, index) => {
+        const angle = (index / 7) * Math.PI * 2;
+        const radius = 1.6 + Math.sin(angle * 2) * 0.4;
+        return new THREE.Vector3(Math.cos(angle) * radius, -0.6 + index * 0.35, Math.sin(angle) * radius * 0.6);
+      })
+    );
+    return curve.getPoints(200);
+  }, []);
+
+  const geometry = useMemo(() => {
+    const geom = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 260, 0.08, 12, true);
+    return geom;
+  }, [points]);
+
+  const material = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#5fa5ff',
+    roughness: 0.2,
+    metalness: 0.6,
+    emissive: '#3d6dff',
+    emissiveIntensity: 0.4,
+  }), []);
+
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (meshRef.current) {
+      meshRef.current.rotation.y = t * 0.12;
+    }
+  });
+
+  return <mesh ref={meshRef} geometry={geometry} material={material} castShadow />;
+}
+
+function HeroExperience({ onReady, enableEffects }: { onReady: () => void; enableEffects: boolean }) {
+  const carbonTexture = useCarbonTexture();
+  const marbleTexture = useMarbleTexture();
   const [sunTarget, setSunTarget] = useState<THREE.Mesh | null>(null);
+  const sunRef = useRef<THREE.Mesh>(null);
 
   useEffect(() => {
-    if (!active) {
-      onReady();
-    }
-  }, [active, onReady]);
-
-  useEffect(() => {
-    if (!enableEffects) {
-      return;
-    }
     const id = window.requestAnimationFrame(() => {
       setSunTarget(sunRef.current);
+      onReady();
     });
-    return () => {
-      window.cancelAnimationFrame(id);
-    };
-  }, [enableEffects]);
+    return () => window.cancelAnimationFrame(id);
+  }, [onReady]);
+
+  useFrame(({ gl: renderer }) => {
+    renderer.toneMappingExposure = 1.05;
+  });
 
   return (
     <>
-      <PerspectiveCamera makeDefault fov={42} position={[0, 1.4, 6.6]} />
+      <PerspectiveCamera makeDefault fov={40} position={[0, 1.4, 6.4]} />
       <CameraRig />
-      <ambientLight intensity={0.3} color={0x404444} />
-      <directionalLight position={[5, 6, 2]} intensity={1.6} color={0xffdfb2} castShadow shadow-mapSize={[2048, 2048]} />
-      <spotLight position={[-3.2, 3.4, 4.4]} intensity={1.2} angle={Math.PI / 5} penumbra={0.6} color={0xbcd2ff} />
-      <pointLight position={[0, 2.6, -3]} intensity={0.8} color={0x6a7dff} />
+      <ambientLight intensity={0.5} color={'#1d2733'} />
+      <directionalLight
+        position={[6, 6, 4]}
+        intensity={2}
+        color={ACCENT_COLOR}
+        castShadow
+        shadow-mapSize={[1024, 1024]}
+      />
+      <spotLight position={[-4, 4, -2]} intensity={1.4} color={'#6dbbff'} angle={0.6} penumbra={0.7} />
+      <pointLight position={[0, 2, 5]} intensity={0.8} color={'#ffffff'} />
       <group>
-        <Prism sunRef={sunRef} />
-        <Float speed={0.8} rotationIntensity={0.25} floatIntensity={0.4}>
-          <OrbitingFragments />
+        <Float speed={0.9} rotationIntensity={0.4} floatIntensity={0.6}>
+          <mesh ref={sunRef} position={[0, 2.1, 0]}>
+            <sphereGeometry args={[0.4, 48, 48]} />
+            <meshBasicMaterial color={ACCENT_COLOR} transparent opacity={0.85} />
+          </mesh>
         </Float>
-        <DustField />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.6, 0]} receiveShadow>
-          <circleGeometry args={[6, 128]} />
-          <meshStandardMaterial color={BASE_COLOR.clone().offsetHSL(0, 0, -0.05)} roughness={0.6} metalness={0.4} />
-        </mesh>
+        <Float speed={1.2} rotationIntensity={0.25} floatIntensity={0.6}>
+          <CarbonFragments />
+        </Float>
+        <Ribbon />
+        <CarbonStage carbonTexture={carbonTexture} marbleTexture={marbleTexture} />
       </group>
       <Environment background={false} resolution={256}>
-        <group rotation={[0, Math.PI / 4, 0]}>
-          <Lightformer intensity={2} form="rect" scale={[10, 10, 1]} position={[0, 5, -12]} color={0xfff4d6} />
-          <Lightformer intensity={1.2} form="ring" scale={5} position={[3, 1, 8]} rotation={[0, Math.PI / 2, 0]} color={0xffcfa5} />
-          <Lightformer intensity={1} form="ring" scale={6} position={[-6, 2, -6]} color={0x9bd6ff} />
+        <group>
+          <Lightformer intensity={1.4} form="ring" scale={8} position={[0, 6, -14]} color={'#f7f1e8'} />
+          <Lightformer intensity={0.7} form="rect" scale={[6, 6, 1]} position={[-6, 3, -6]} color={'#6aa7ff'} />
+          <Lightformer intensity={0.5} form="rect" scale={[4, 4, 1]} position={[5, -2, 4]} color={'#262f3a'} />
         </group>
       </Environment>
-      <Html position={[0, 2.4, 0]} center className="hero-scene__label" aria-hidden>
-        <span>Immersive Growth Suite 2024</span>
+      <Html position={[0, 2.8, 0]} center className="hero-scene__label" aria-hidden>
+        <span>Studio Visione Immersiva</span>
       </Html>
       <Preload all />
-      <EffectComposer enableNormalPass={enableEffects} multisampling={enableEffects ? 2 : 0}>
-        <ScreenSpaceReflections enabled={enableEffects} />
+      <EffectComposer multisampling={enableEffects ? 2 : 0} enableNormalPass={enableEffects}>
         {enableEffects ? (
-          <Bloom intensity={0.7} luminanceThreshold={0.32} luminanceSmoothing={0.18} mipmapBlur />
+          <Bloom intensity={0.65} luminanceThreshold={0.4} luminanceSmoothing={0.2} mipmapBlur />
         ) : (
           <></>
         )}
-        <ToneMapping adaptive={false} mode={ToneMappingMode.ACES_FILMIC} />
-        <Vignette eskil={false} offset={0.32} darkness={0.45} />
+        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        <Vignette eskil={false} darkness={0.55} offset={0.32} />
         {enableEffects && sunTarget ? (
           <GodRays
             sun={sunTarget}
             samples={80}
             density={0.9}
             decay={0.94}
-            weight={0.6}
-            exposure={0.8}
+            weight={0.5}
+            exposure={0.9}
             clampMax={1}
             blur
           />
@@ -527,10 +342,9 @@ function HeroExperience({ enableEffects, onReady }: { enableEffects: boolean; on
 function FallbackPoster({ loading }: { loading: boolean }) {
   return (
     <div className={clsx('hero-scene__poster', { 'hero-scene__poster--loading': loading })} aria-hidden>
-      <div className="hero-scene__poster-visual" aria-hidden>
-        <span className="hero-scene__poster-glow" aria-hidden />
-      </div>
-      <div className="hero-scene__poster-overlay" aria-hidden />
+      <div className="hero-scene__poster-carbon" aria-hidden />
+      <div className="hero-scene__poster-marble" aria-hidden />
+      <div className="hero-scene__poster-glow" aria-hidden />
     </div>
   );
 }
@@ -551,27 +365,17 @@ export function HeroScene() {
       return;
     }
 
-    const rafId = window.requestAnimationFrame(() => {
-      setMounted(true);
-    });
-
-    const mq = window.matchMedia('(max-width: 768px)');
-    const handleChange = (event: MediaQueryListEvent) => {
-      setIsMobile(event.matches);
+    const rafId = window.requestAnimationFrame(() => setMounted(true));
+    const media = window.matchMedia('(max-width: 768px)');
+    const update = (target: MediaQueryListEvent | MediaQueryList) => {
+      setIsMobile(target.matches);
     };
+    update(media);
+    media.addEventListener('change', update);
 
-    if (typeof mq.addEventListener === 'function') {
-      mq.addEventListener('change', handleChange);
-      return () => {
-        window.cancelAnimationFrame(rafId);
-        mq.removeEventListener('change', handleChange);
-      };
-    }
-
-    mq.addListener(handleChange);
     return () => {
       window.cancelAnimationFrame(rafId);
-      mq.removeListener(handleChange);
+      media.removeEventListener('change', update);
     };
   }, []);
 
@@ -585,7 +389,7 @@ export function HeroScene() {
     gl.shadowMap.enabled = true;
     gl.shadowMap.type = THREE.PCFSoftShadowMap;
     scene.background = BASE_COLOR;
-    scene.fog = new THREE.Fog(BASE_COLOR.clone().offsetHSL(0, 0, 0.08), 10, 28);
+    scene.fog = new THREE.Fog(BASE_COLOR.clone().offsetHSL(0, 0, 0.1), 10, 26);
   }, []);
 
   const shouldFallback = !mounted || reducedMotion || isMobile;
@@ -593,7 +397,10 @@ export function HeroScene() {
 
   return (
     <div
-      className={clsx('hero-scene', { 'hero-scene--fallback': shouldFallback, 'hero-scene--ready': sceneReady })}
+      className={clsx('hero-scene', {
+        'hero-scene--fallback': shouldFallback,
+        'hero-scene--ready': sceneReady,
+      })}
       data-reduced-motion={reducedMotion ? 'true' : 'false'}
     >
       {shouldFallback && <FallbackPoster loading={!sceneReady} />}

@@ -20,186 +20,139 @@ const metrics: Metric[] = [
     label: 'Revenue lift medio',
     value: 3.8,
     suffix: 'x',
-    description: 'Accelerazione media su progetti full funnel (12 mesi).'
+    description: 'Accelerazione media registrata su programmi omnicanale di 12 mesi.',
   },
   {
     label: 'Tempo di go-live',
     value: 45,
     suffix: 'gg',
-    description: 'Dalla firma al primo touchpoint attivo per prodotti premium.'
+    description: 'Dalla firma al primo touchpoint attivo su prodotti premium.',
   },
   {
     label: 'Incremento lead qualificati',
     value: 214,
     suffix: '%',
-    description: 'Dato mediano su campagne orchestrate cross-channel.'
+    description: 'Media mediana su campagne integrate con scenari motion-first.',
   },
   {
     label: 'INP mediano monitorato',
     value: 98,
     suffix: 'ms',
-    description: 'Esperienze cinematiche senza rinunciare alle prestazioni.'
-  }
+    description: 'Esperienze cinematiche senza rinunciare alla risposta interattiva.',
+  },
 ];
 
-function formatValue(metric: Metric, current: number) {
-  const fixed = metric.suffix === 'x' ? current.toFixed(1) : Math.round(current);
-  return `${metric.prefix ?? ''}${fixed}${metric.suffix ?? ''}`;
-}
-
 export function KpiSection() {
-  const container = useRef<HTMLDivElement>(null);
+  const container = useRef<HTMLElement>(null);
   const { reducedMotion } = useMotionPreferences();
 
   useEffect(() => {
-    if (reducedMotion || !container.current) return;
+    const section = container.current;
+    if (!section || reducedMotion) return;
 
-    const cleanups: Array<() => void> = [];
-    const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>('.kpi__card');
+    const cards = Array.from(section.querySelectorAll<HTMLElement>('.metrics-panel__card'));
 
-      cards.forEach((card, index) => {
-        const metric = metrics[index];
-        if (!metric) return;
+    const animations = cards.map((card) => {
+      const metricValue = Number(card.dataset.metricValue ?? '0');
+      const metricSuffix = card.dataset.metricSuffix ?? '';
+      const metricPrefix = card.dataset.metricPrefix ?? '';
+      const valueEl = card.querySelector<HTMLElement>('.metrics-panel__value');
+      const counter = { value: 0 };
 
-        gsap.fromTo(
+      return gsap.timeline({
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 80%',
+          end: 'bottom center',
+          scrub: 0.6,
+        },
+      })
+        .fromTo(
           card,
-          { y: 48, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.9,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 85%'
+          { y: 60, opacity: 0, '--glow-progress': 0 },
+          { y: 0, opacity: 1, '--glow-progress': 1, duration: 1, ease: 'power3.out' }
+        )
+        .to(counter, {
+          value: metricValue,
+          duration: 1.2,
+          ease: 'power3.out',
+          onUpdate() {
+            if (valueEl) {
+              const display = metricSuffix === 'x' ? counter.value.toFixed(1) : Math.round(counter.value).toString();
+              valueEl.textContent = `${metricPrefix}${display}${metricSuffix}`;
             }
-          }
-        );
+          },
+        }, 0);
+    });
 
-        const valueEl = card.querySelector<HTMLElement>('.kpi__value');
-        if (!valueEl) return;
-
-        const counter = { value: 0 };
-
-        const orbit = card.querySelector<HTMLElement>('.kpi__orbit');
-        if (orbit) {
-          gsap.fromTo(
-            orbit,
-            { rotate: 0 },
-            {
-              rotate: 360,
-              duration: 18,
-              ease: 'none',
-              repeat: -1
-            }
-          );
-        }
-
-        gsap.fromTo(
-          counter,
-          { value: metric.value },
-          {
-            duration: 1.6,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 85%'
-            },
-            onUpdate() {
-              const formatted = formatValue(metric, counter.value);
-              valueEl.textContent = formatted;
-            },
-            onComplete() {
-              valueEl.textContent = formatValue(metric, metric.value);
-            }
-          }
-        );
-      });
-    }, container);
-
-    const cards = container.current.querySelectorAll<HTMLElement>('.kpi__card');
-    cards.forEach((card) => {
-      gsap.set(card, { transformPerspective: 650 });
-      const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.6, ease: 'power3.out' });
-      const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.6, ease: 'power3.out' });
-      const orbit = card.querySelector<HTMLElement>('.kpi__orbit');
-
-      const handleMove = (event: PointerEvent) => {
-        const rect = card.getBoundingClientRect();
-        const relX = (event.clientX - rect.left) / rect.width;
-        const relY = (event.clientY - rect.top) / rect.height;
-        rotateY((relX - 0.5) * 10);
-        rotateX(-(relY - 0.5) * 8);
-
-        if (orbit) {
-          gsap.to(orbit, {
-            x: (relX - 0.5) * 24,
-            y: (relY - 0.5) * 24,
-            duration: 0.6,
-            ease: 'power3.out'
-          });
-        }
+    const hoverHandlers = cards.map((card) => {
+      const onPointerMove = (event: PointerEvent) => {
+        const bounds = card.getBoundingClientRect();
+        const relX = (event.clientX - bounds.left) / bounds.width;
+        const relY = (event.clientY - bounds.top) / bounds.height;
+        gsap.to(card, {
+          rotationX: -(relY - 0.5) * 8,
+          rotationY: (relX - 0.5) * 12,
+          duration: 0.6,
+          ease: 'power3.out',
+        });
+        card.style.setProperty('--pointer-x', `${relX}`);
+        card.style.setProperty('--pointer-y', `${relY}`);
       };
-
-      const reset = () => {
-        rotateX(0);
-        rotateY(0);
-        if (orbit) {
-          gsap.to(orbit, { x: 0, y: 0, duration: 0.6, ease: 'power3.out' });
-        }
+      const onLeave = () => {
+        gsap.to(card, { rotationX: 0, rotationY: 0, duration: 0.8, ease: 'power3.out' });
       };
-
-      card.addEventListener('pointermove', handleMove);
-      card.addEventListener('pointerleave', reset);
-      cleanups.push(() => {
-        card.removeEventListener('pointermove', handleMove);
-        card.removeEventListener('pointerleave', reset);
-      });
+      card.addEventListener('pointermove', onPointerMove);
+      card.addEventListener('pointerleave', onLeave);
+      return () => {
+        card.removeEventListener('pointermove', onPointerMove);
+        card.removeEventListener('pointerleave', onLeave);
+      };
     });
 
     return () => {
-      cleanups.forEach((dispose) => dispose());
-      ctx.revert();
+      animations.forEach((timeline) => timeline.kill());
+      hoverHandlers.forEach((dispose) => dispose());
     };
   }, [reducedMotion]);
 
   return (
     <section
       ref={container}
-      className="section kpi"
-      aria-labelledby="kpi-heading"
-      data-guided-section="kpi"
+      className="story-panel metrics-panel"
+      aria-labelledby="metrics-heading"
+      data-guided-section="metrics"
+      data-story-panel
     >
-      <div className="section__header">
-        <p className="section__eyebrow">KPI Dashboard</p>
-        <h2 id="kpi-heading" className="section__title">
-          Dati che confermano l&apos;ascensione verso le 7 figures.
-        </h2>
-        <p className="section__description">
-          Ogni progetto è monitorato con dashboard real time e modelli predittivi. I numeri qui sotto provengono dai casi premiati
-          che hanno ispirato la torre.
-        </p>
-      </div>
-      <div className="kpi__grid" role="list">
-        {metrics.map((metric) => (
-          <article
-            key={metric.label}
-            role="listitem"
-            className="kpi__card card--carbon"
-            data-value={metric.value}
-            data-suffix={metric.suffix}
-          >
-            <span className="kpi__orbit" aria-hidden />
-            <h3>{metric.label}</h3>
-            <span className="kpi__value" aria-live="polite">
-              {metric.prefix ?? ''}
-              {metric.suffix === 'x' ? '0.0' : '0'}
-              {metric.suffix ?? ''}
-            </span>
-            <p>{metric.description}</p>
-          </article>
-        ))}
+      <div className="story-panel__inner">
+        <div className="story-panel__header">
+          <p className="story-panel__eyebrow">Capitolo · Performance</p>
+          <h2 id="metrics-heading">Metriche scolpite durante il viaggio.</h2>
+          <p className="story-panel__lead">
+            Dashboard proprietarie, modelli predittivi e osservabilità continua traducono la regia estetica in risultato
+            misurabile.
+          </p>
+        </div>
+        <div className="metrics-panel__grid" role="list">
+          {metrics.map((metric) => (
+            <article
+              key={metric.label}
+              role="listitem"
+              className="metrics-panel__card card--carbon"
+              data-metric-value={metric.value}
+              data-metric-suffix={metric.suffix ?? ''}
+              data-metric-prefix={metric.prefix ?? ''}
+            >
+              <h3>{metric.label}</h3>
+              <span className="metrics-panel__value" aria-live="polite">
+                {metric.prefix ?? ''}
+                {metric.suffix === 'x' ? '0.0' : '0'}
+                {metric.suffix ?? ''}
+              </span>
+              <p>{metric.description}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -3,101 +3,133 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import type { CSSProperties } from 'react';
 import { useMotionPreferences } from '../../hooks/useMotionPreferences';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const steps = [
   {
-    title: '1. Ascend',
-    description: 'Immersione strategica, data mining e definizione dei KPI di scalata. Mappiamo audience, insight e touchpoint.'
+    title: '1 · Immerse',
+    description:
+      'Analisi culturale, audit dati e definizione KPI. Creiamo il manifesto narrativo e la mappa emotiva del brand.',
   },
   {
-    title: '2. Architect',
-    description: 'Design system, identità e architettura dell\'esperienza. Wireflow cinematico e prototipi motion first.'
+    title: '2 · Architect',
+    description:
+      'Design system multisensoriale, storyboard cinematico e prototipi interattivi con iterazioni rapide.',
   },
   {
-    title: '3. Amplify',
-    description: 'Sviluppo WebGL/WebGPU, campagne media, automazioni e ottimizzazione creativa con test multivariati.'
+    title: '3 · Orchestrate',
+    description:
+      'Sviluppo Next.js/WebGL, pipeline contenuti, campagne media e automazioni con governance condivisa.',
   },
   {
-    title: '4. Elevate',
-    description: 'Monitoraggio in tempo reale, modelli predittivi e refinement continuo basato su Web Vitals e ROI.'
-  }
+    title: '4 · Amplify',
+    description:
+      'Monitoraggio in tempo reale, sperimentazioni creative, ottimizzazione continua e knowledge sharing.',
+  },
 ];
 
 export function ProcessSection() {
-  const container = useRef<HTMLDivElement>(null);
+  const container = useRef<HTMLElement>(null);
   const { reducedMotion } = useMotionPreferences();
 
   useEffect(() => {
-    if (reducedMotion || !container.current) return;
+    const section = container.current;
+    if (!section || reducedMotion) return;
 
     const ctx = gsap.context(() => {
-      gsap.to('.process__line', {
-        scaleY: 1,
+      const nodes = Array.from(section.querySelectorAll<HTMLElement>('.process-panel__step'));
+      const disposers: Array<() => void> = [];
+
+      gsap.timeline({
         scrollTrigger: {
-          trigger: container.current,
-          start: 'top 80%',
-          end: 'bottom 40%',
-          scrub: 1
-        }
-      });
+          trigger: section,
+          start: 'top center',
+          end: 'bottom bottom',
+          scrub: 1.1,
+        },
+      }).to(section, { '--process-progress': nodes.length - 1, ease: 'none' });
 
-      gsap.to('.process__aura', {
-        backgroundPosition: '120% 40%',
-        duration: 18,
-        ease: 'none',
-        repeat: -1
-      });
-
-      gsap.utils.toArray<HTMLElement>('.process__grid li').forEach((item, index) => {
+      nodes.forEach((node) => {
         gsap.fromTo(
-          item,
-          { opacity: 0, y: 32, filter: 'blur(12px)' },
+          node,
+          { opacity: 0, y: 40, filter: 'blur(12px)' },
           {
             opacity: 1,
             y: 0,
             filter: 'blur(0px)',
-            duration: 1,
+            duration: 0.8,
             ease: 'power3.out',
             scrollTrigger: {
-              trigger: item,
-              start: 'top 85%'
+              trigger: node,
+              start: 'top 80%',
             },
-            delay: index * 0.1
           }
         );
-      });
-    }, container);
 
-    return () => ctx.revert();
+        const handlePointerMove = (event: PointerEvent) => {
+          const bounds = node.getBoundingClientRect();
+          const relX = (event.clientX - bounds.left) / bounds.width;
+          node.style.setProperty('--pointer-x', `${relX}`);
+        };
+        const handlePointerLeave = () => {
+          node.style.removeProperty('--pointer-x');
+        };
+        node.addEventListener('pointermove', handlePointerMove);
+        node.addEventListener('pointerleave', handlePointerLeave);
+        disposers.push(() => {
+          node.removeEventListener('pointermove', handlePointerMove);
+          node.removeEventListener('pointerleave', handlePointerLeave);
+        });
+      });
+
+      return () => {
+        disposers.forEach((dispose) => dispose());
+      };
+    }, section);
+
+    return () => {
+      ctx.revert();
+    };
   }, [reducedMotion]);
 
   return (
     <section
       ref={container}
-      className="section process"
+      className="story-panel process-panel"
       aria-labelledby="process-heading"
       data-guided-section="process"
+      data-story-panel
     >
-      <div className="section__header">
-        <p className="section__eyebrow">Metodo</p>
-        <h2 id="process-heading" className="section__title">
-          Un percorso orchestrato per scalare.
-        </h2>
-      </div>
-      <div className="process__grid">
-        <div className="process__aura" aria-hidden />
-        <div className="process__line" aria-hidden />
-        <ul>
-          {steps.map((step) => (
-            <li key={step.title} className="process__step card--carbon">
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
-            </li>
-          ))}
-        </ul>
+      <div className="story-panel__inner">
+        <div className="story-panel__header">
+          <p className="story-panel__eyebrow">Capitolo · Metodo</p>
+          <h2 id="process-heading">Un percorso diretto come un film.</h2>
+          <p className="story-panel__lead">
+            Ogni fase ha un tono visivo, un ritmo e una metrica. Guidiamo team misti attraverso un workflow trasparente,
+            collaborativo e profondamente umano.
+          </p>
+        </div>
+        <div className="process-panel__timeline">
+          <ol>
+            {steps.map((step, index) => (
+              <li
+                key={step.title}
+                className="process-panel__step card--carbon"
+                style={{ '--step-index': index } as CSSProperties}
+              >
+                <span className="process-panel__marker" aria-hidden />
+                <div>
+                  <h3>{step.title}</h3>
+                  <p>{step.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="process-panel__rail" aria-hidden />
+        </div>
       </div>
     </section>
   );

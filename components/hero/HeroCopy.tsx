@@ -1,40 +1,38 @@
 'use client';
 
-import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { useEffect, useId, useMemo } from 'react';
-import { MagneticButton } from '../MagneticButton';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import clsx from 'clsx';
+import { MagneticButton } from '../MagneticButton';
 
 interface HeroCopyProps {
   reducedMotion: boolean;
 }
 
-const CTA_EASE = (t: number) => 1 - Math.pow(1 - t, 3);
-
 const CTA_VARIANTS = {
-  initial: { opacity: 0, y: 32, scale: 0.94 },
-  enter: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.9, ease: CTA_EASE } },
-  hover: { scale: 1.02 },
-  tap: { scale: 0.98 }
+  initial: { opacity: 0, y: 42, scale: 0.94 },
+  enter: { opacity: 1, y: 0, scale: 1, transition: { duration: 1, ease: [0.16, 1, 0.3, 1] as const } },
+  hover: { scale: 1.03, transition: { duration: 0.35, ease: [0.34, 1.56, 0.64, 1] as const } },
+  tap: { scale: 0.97, transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const } },
 };
 
 export function HeroCopy({ reducedMotion }: HeroCopyProps) {
-  const statsId = useId();
-  const cursorX = useMotionValue(0);
-  const cursorY = useMotionValue(0);
-  const smoothX = useSpring(cursorX, { stiffness: 200, damping: 24, mass: 0.8 });
-  const smoothY = useSpring(cursorY, { stiffness: 200, damping: 24, mass: 0.8 });
-  const summaryId = `${statsId}-summary`;
+  const blockId = useId();
+  const subtitleId = `${blockId}-subtitle`;
+  const cursorX = useMotionValue(-140);
+  const cursorY = useMotionValue(-140);
+  const smoothX = useSpring(cursorX, { stiffness: 220, damping: 28, mass: 0.8 });
+  const smoothY = useSpring(cursorY, { stiffness: 220, damping: 28, mass: 0.8 });
 
   useEffect(() => {
-    cursorX.set(-120);
-    cursorY.set(-120);
+    cursorX.set(-140);
+    cursorY.set(-140);
   }, [cursorX, cursorY]);
 
-  const titleLines = useMemo(
+  const title = useMemo(
     () => [
-      'Costruiamo esperienze digitali',
-      'che scolpiscono il futuro dei brand di lusso'
+      { text: 'Narrazioni immersive', accent: false, parallax: -16 },
+      { text: 'per brand che cambiano il mondo', accent: true, parallax: -24 },
     ],
     []
   );
@@ -48,8 +46,8 @@ export function HeroCopy({ reducedMotion }: HeroCopyProps) {
 
   const handlePointerLeave = () => {
     if (reducedMotion) return;
-    cursorX.set(-120);
-    cursorY.set(-120);
+    cursorX.set(-140);
+    cursorY.set(-140);
   };
 
   return (
@@ -59,21 +57,24 @@ export function HeroCopy({ reducedMotion }: HeroCopyProps) {
       onPointerLeave={handlePointerLeave}
       data-reduced-motion={reducedMotion ? 'true' : 'false'}
     >
-      <p className="hero-copy__eyebrow" data-hero-letter>
-        Luxury Growth Atelier
+      <p className="hero-copy__meta" data-hero-letter>
+        Studio · Carbon x Marble Edition
       </p>
-      <h1 id="hero-heading" className="hero-copy__title" aria-describedby={summaryId}>
-        {titleLines.map((line, index) => (
-          <span key={line} className={clsx('hero-copy__title-line', { 'hero-copy__title-line--accent': index === 1 })}>
-            <span data-hero-letter data-parallax={index === 0 ? -16 : -22}>
-              {line}
+      <h1 id="hero-heading" className="hero-copy__title" aria-describedby={subtitleId}>
+        {title.map((line) => (
+          <span
+            key={line.text}
+            className={clsx('hero-copy__title-line', { 'hero-copy__title-line--accent': line.accent })}
+          >
+            <span data-hero-letter data-parallax={line.parallax}>
+              {line.text}
             </span>
           </span>
         ))}
       </h1>
-      <p id={summaryId} className="hero-copy__lead" data-hero-letter data-parallax="-12">
-        Disegniamo ecosistemi digitali immersivi con direzione artistica WebGL, strategie omnicanale e journey
-        sartoriali che trasformano curiosi in clienti ambasciatori.
+      <p id={subtitleId} className="hero-copy__subtitle" data-hero-letter data-parallax="-12">
+        Mettiamo in scena esperienze a tutto schermo, combinando direzione artistica cinematografica, prototipi WebGL
+        e strategie data-driven per trasformare l&apos;attenzione in relazione duratura.
       </p>
       <motion.div
         className="hero-copy__actions"
@@ -84,24 +85,29 @@ export function HeroCopy({ reducedMotion }: HeroCopyProps) {
         whileTap="tap"
       >
         <MagneticButton as="a" href="/contact" variant="primary" data-hero-cta>
-          Avvia il tuo progetto
+          Prenota un incontro immersivo
         </MagneticButton>
         <MagneticButton as="a" href="/case-studies" variant="ghost" data-hero-cta>
-          Guarda il portfolio
+          Vedi i reels progettuali
         </MagneticButton>
       </motion.div>
-      <dl className="hero-copy__stats" aria-live="polite">
-        <div className="hero-copy__stat" data-hero-letter>
-          <dt>Incremento medio delle revenue</dt>
-          <dd>+212%</dd>
+      <div className="hero-copy__timeline" data-hero-letter>
+        <span>200+ scenari simulati</span>
+        <span className="hero-copy__timeline-bar" aria-hidden />
+        <span>Arte + Ingegneria</span>
+      </div>
+      <dl className="hero-copy__metrics" aria-live="polite">
+        <div className="hero-copy__metric" data-hero-letter>
+          <dt>Esperienze orchestrate</dt>
+          <dd>47 launch</dd>
         </div>
-        <div className="hero-copy__stat" data-hero-letter>
-          <dt>Time-to-experience medio</dt>
-          <dd>12 settimane</dd>
+        <div className="hero-copy__metric" data-hero-letter>
+          <dt>Tempo medio prototipo</dt>
+          <dd>8 settimane</dd>
         </div>
-        <div className="hero-copy__stat" data-hero-letter>
-          <dt>Immersive experiences consegnate</dt>
-          <dd>34 progetti</dd>
+        <div className="hero-copy__metric" data-hero-letter>
+          <dt>Indice di coinvolgimento</dt>
+          <dd>+238%</dd>
         </div>
       </dl>
       {!reducedMotion && (
@@ -109,8 +115,8 @@ export function HeroCopy({ reducedMotion }: HeroCopyProps) {
           className="hero-copy__cursor"
           style={{ translateX: smoothX, translateY: smoothY }}
           aria-hidden
-          initial={{ opacity: 0, scale: 0.2 }}
-          animate={{ opacity: 0.35, scale: 1, transition: { duration: 1.2, delay: 0.6, ease: 'easeOut' } }}
+          initial={{ opacity: 0, scale: 0.4 }}
+          animate={{ opacity: 0.35, scale: 1, transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] as const, delay: 0.6 } }}
         />
       )}
     </div>

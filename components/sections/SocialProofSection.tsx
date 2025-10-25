@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import clsx from 'clsx';
+import type { CSSProperties } from 'react';
 import { useMotionPreferences } from '../../hooks/useMotionPreferences';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -10,116 +12,102 @@ gsap.registerPlugin(ScrollTrigger);
 const partners = [
   {
     name: 'Shopify Plus Partner',
-    description: 'Top 1% eCommerce experience architects',
+    description: 'Experience architects per ecommerce ultra premium',
     since: 'Dal 2020',
-    tone: 'aurum'
+    tone: 'aurum',
   },
   {
     name: 'Meta Business Partner',
     description: 'Creative performance & paid social elite',
     since: 'Dal 2018',
-    tone: 'noir'
+    tone: 'noir',
   },
   {
     name: 'TikTok Marketing Partner',
     description: 'Storydoing realtime e commerce live',
     since: 'Dal 2021',
-    tone: 'pulse'
+    tone: 'pulse',
   },
   {
     name: 'Google Premier Partner',
     description: 'AI + Search, YouTube & GMP orchestrazione',
     since: 'Dal 2017',
-    tone: 'halo'
-  }
+    tone: 'halo',
+  },
 ];
 
-const testimonial = {
-  quote:
-    '“Digital Tower ci ha guidati da zero a un fatturato 7 figure in 14 mesi, con una regia digitale che fonde brand experience e dati in tempo reale.”',
-  author: 'Giada Morelli',
-  role: 'Co-founder, Maison d’Héritage'
-};
+const testimonies = [
+  {
+    quote:
+      '“Digital Tower ha creato un universo narrativo che ha trasformato la nostra manifattura in esperienza immersiva. Crescita a 7 figure mantenendo coerenza con il nostro heritage.”',
+    author: 'Giada Morelli',
+    role: 'Co-founder · Maison d’Héritage',
+  },
+  {
+    quote:
+      '“Processi fluidi, attenzione maniacale e risultati concreti. Il loro team orchestra tecnologia e creatività come una troupe cinematografica.”',
+    author: 'Luca Ferri',
+    role: 'CMO · Veloce Motors',
+  },
+];
 
 export function SocialProofSection() {
-  const container = useRef<HTMLDivElement>(null);
+  const container = useRef<HTMLElement>(null);
+  const stackRef = useRef<HTMLDivElement>(null);
+  const quoteRef = useRef<HTMLDivElement>(null);
   const { reducedMotion } = useMotionPreferences();
 
   useEffect(() => {
-    if (reducedMotion || !container.current) return;
+    const section = container.current;
+    const stack = stackRef.current;
+    const quote = quoteRef.current;
+    if (!section || !stack || !quote || reducedMotion) {
+      return;
+    }
 
-    const cleanups: Array<() => void> = [];
     const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>('.social-proof__partner');
-      cards.forEach((card, index) => {
-        gsap.fromTo(
-          card,
-          { y: 40, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.9,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 85%'
-            },
-            delay: index * 0.06
-          }
-        );
+      gsap.set(stack, { '--stack-progress': 0 });
+      const cards = Array.from(stack.querySelectorAll<HTMLElement>('.alliances-panel__partner'));
 
+      gsap.to(stack, {
+        '--stack-progress': partners.length - 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top center',
+          end: 'bottom bottom',
+          scrub: 1,
+        },
       });
 
-      gsap.fromTo(
-        '.social-proof__quote-block',
-        { opacity: 0, scale: 0.96 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1.1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: '.social-proof__quote-block',
-            start: 'top 80%'
-          }
-        }
-      );
-
-    }, container);
-
-    const cards = container.current.querySelectorAll<HTMLElement>('.social-proof__partner');
-    cards.forEach((card) => {
-      gsap.set(card, { transformPerspective: 600 });
-      const rotateX = gsap.quickTo(card, 'rotationX', { duration: 0.6, ease: 'power3.out' });
-      const rotateY = gsap.quickTo(card, 'rotationY', { duration: 0.6, ease: 'power3.out' });
-      const translateZ = gsap.quickTo(card, 'z', { duration: 0.6, ease: 'power3.out' });
-
-      const handleMove = (event: PointerEvent) => {
-        const rect = card.getBoundingClientRect();
-        const relX = (event.clientX - rect.left) / rect.width;
-        const relY = (event.clientY - rect.top) / rect.height;
-        rotateY((relX - 0.5) * 14);
-        rotateX(-(relY - 0.5) * 10);
-        translateZ(12);
-
-      };
-
-      const reset = () => {
-        rotateX(0);
-        rotateY(0);
-        translateZ(0);
-      };
-
-      card.addEventListener('pointermove', handleMove);
-      card.addEventListener('pointerleave', reset);
-      cleanups.push(() => {
-        card.removeEventListener('pointermove', handleMove);
-        card.removeEventListener('pointerleave', reset);
+      gsap.to(cards, {
+        y: (index) => (index % 2 === 0 ? -10 : 10),
+        duration: 3,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        stagger: { amount: 1.8, repeat: -1 },
       });
-    });
+
+      const swap = () => {
+        const next = quote.dataset.active === '0' ? 1 : 0;
+        quote.dataset.active = String(next);
+        const items = quote.querySelectorAll<HTMLElement>('.alliances-panel__quote');
+        items.forEach((item, index) => {
+          if (index === Number(next)) {
+            gsap.to(item, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' });
+          } else {
+            gsap.to(item, { opacity: 0, y: 20, duration: 0.6, ease: 'power2.in' });
+          }
+        });
+      };
+
+      gsap.timeline({ repeat: -1, repeatDelay: 4.4 }).to({}, { duration: 1, onComplete: swap });
+    }, section);
+
+    quote.dataset.active = '0';
 
     return () => {
-      cleanups.forEach((dispose) => dispose());
       ctx.revert();
     };
   }, [reducedMotion]);
@@ -127,43 +115,48 @@ export function SocialProofSection() {
   return (
     <section
       ref={container}
-      className="section social-proof"
-      aria-labelledby="social-proof-heading"
+      className="story-panel alliances-panel"
+      aria-labelledby="alliances-heading"
       data-guided-section="alliances"
+      data-story-panel
     >
-      <div className="section__header">
-        <p className="section__eyebrow">Alliances</p>
-        <h2 id="social-proof-heading" className="section__title">
-          Partnership certificate per scalare con fiducia.
-        </h2>
-        <p className="section__description">
-          Siamo riconosciuti come partner élite dalle principali piattaforme. La nostra torre si costruisce su partnership
-          provate, performance costanti e una regia integrata tra paid, owned ed earned media.
-        </p>
+      <div className="story-panel__inner">
+        <div className="story-panel__header">
+          <p className="story-panel__eyebrow">Capitolo · Alleanze</p>
+          <h2 id="alliances-heading">Partner certificati e fiducia sul campo.</h2>
+          <p className="story-panel__lead">
+            Collaboriamo con piattaforme globali e brand visionari. Le certificazioni aprono porte, le testimonianze confermano
+            il metodo.
+          </p>
+        </div>
+        <div className="alliances-panel__layout">
+          <div ref={stackRef} className="alliances-panel__stack">
+            {partners.map((partner, index) => (
+              <article
+                key={partner.name}
+                className={clsx('alliances-panel__partner', 'card--carbon')}
+                data-tone={partner.tone}
+                style={{ '--item-index': index } as CSSProperties}
+              >
+                <span className="alliances-panel__partner-since">{partner.since}</span>
+                <h3>{partner.name}</h3>
+                <p>{partner.description}</p>
+              </article>
+            ))}
+          </div>
+          <div ref={quoteRef} className="alliances-panel__quotes" data-active="0">
+            {testimonies.map((testimony) => (
+              <figure key={testimony.author} className="alliances-panel__quote card--marble">
+                <blockquote>{testimony.quote}</blockquote>
+                <figcaption>
+                  <strong>{testimony.author}</strong>
+                  <span>{testimony.role}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="social-proof__grid" role="list">
-        {partners.map((partner) => (
-          <article
-            key={partner.name}
-            role="listitem"
-            className="social-proof__partner card--carbon"
-            data-tone={partner.tone}
-            aria-label={`${partner.name} — ${partner.description}`}
-          >
-            <div className="social-proof__texture" aria-hidden />
-            <p className="social-proof__since">{partner.since}</p>
-            <h3>{partner.name}</h3>
-            <p>{partner.description}</p>
-          </article>
-        ))}
-      </div>
-      <figure className="social-proof__quote-block card--carbon">
-        <blockquote>{testimonial.quote}</blockquote>
-        <figcaption>
-          <span>{testimonial.author}</span>
-          <span>{testimonial.role}</span>
-        </figcaption>
-      </figure>
     </section>
   );
 }

@@ -376,7 +376,10 @@
   0% {
     transform: rotate(0deg);
   }
+}
 
+@keyframes card-glow-pulse {
+  0%,
   100% {
     transform: rotate(360deg);
   }

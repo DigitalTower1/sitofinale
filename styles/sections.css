@@ -136,44 +136,7 @@
   z-index: 0;
 }
 
-.card--carbon::after {
-  --card-glow-thickness: clamp(1px, 0.35vw, 2px);
-  --card-glow-spread: clamp(10px, 2.5vw, 32px);
-  content: '';
-  position: absolute;
-  inset: calc(var(--card-glow-thickness) * -1);
-  border-radius: inherit;
-  padding: var(--card-glow-thickness);
-  pointer-events: none;
-  background:
-    conic-gradient(
-      from 0deg,
-      rgba(252, 210, 135, 0.95) 0deg,
-      rgba(136, 155, 255, 0.82) 120deg,
-      rgba(252, 210, 135, 0.98) 240deg,
-      rgba(252, 210, 135, 0.95) 360deg
-    );
-  background-clip: border-box;
-  mix-blend-mode: screen;
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  opacity: 0.68;
-  box-shadow:
-    0 0 calc(var(--card-glow-spread) * 0.16) rgba(252, 210, 135, 0.5),
-    0 0 calc(var(--card-glow-spread) * 0.28) rgba(136, 155, 255, 0.35),
-    0 0 calc(var(--card-glow-spread) * 0.38) rgba(252, 210, 135, 0.26);
-  transform: rotate(0deg);
-  transform-origin: 50% 50%;
-  will-change: transform, opacity, box-shadow;
-  animation: card-glow-spin 18s linear infinite, card-glow-pulse 7.5s ease-in-out infinite;
-  z-index: 1;
-}
+
 
 
 .card--carbon > * {
@@ -218,34 +181,6 @@
   }
 }
 
-@keyframes card-glow-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes card-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.75;
-    box-shadow:
-      0 0 calc(var(--card-glow-spread) * 0.25) rgba(252, 210, 135, 0.38),
-      0 0 calc(var(--card-glow-spread) * 0.45) rgba(136, 155, 255, 0.32),
-      0 0 calc(var(--card-glow-spread) * 0.65) rgba(252, 210, 135, 0.22);
-  }
-
-  50% {
-    opacity: 1;
-    box-shadow:
-      0 0 calc(var(--card-glow-spread) * 0.45) rgba(252, 210, 135, 0.6),
-      0 0 calc(var(--card-glow-spread) * 0.7) rgba(136, 155, 255, 0.45),
-      0 0 calc(var(--card-glow-spread) * 1) rgba(252, 210, 135, 0.35);
-  }
-}
 
 .section.hero {
   margin: 0 auto;
@@ -291,44 +226,6 @@
   z-index: 0;
 }
 
-.card--carbon::after {
-  --card-glow-thickness: clamp(1px, 0.35vw, 2px);
-  --card-glow-spread: clamp(10px, 2.5vw, 32px);
-  content: '';
-  position: absolute;
-  inset: calc(var(--card-glow-thickness) * -1);
-  border-radius: inherit;
-  padding: var(--card-glow-thickness);
-  pointer-events: none;
-  background:
-    conic-gradient(
-      from 0deg,
-      rgba(252, 210, 135, 0.95) 0deg,
-      rgba(136, 155, 255, 0.82) 120deg,
-      rgba(252, 210, 135, 0.98) 240deg,
-      rgba(252, 210, 135, 0.95) 360deg
-    );
-  background-clip: border-box;
-  mix-blend-mode: screen;
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  opacity: 0.68;
-  box-shadow:
-    0 0 calc(var(--card-glow-spread) * 0.16) rgba(252, 210, 135, 0.5),
-    0 0 calc(var(--card-glow-spread) * 0.28) rgba(136, 155, 255, 0.35),
-    0 0 calc(var(--card-glow-spread) * 0.38) rgba(252, 210, 135, 0.26);
-  transform: rotate(0deg);
-  transform-origin: 50% 50%;
-  will-change: transform, opacity, box-shadow;
-  animation: card-glow-spin 18s linear infinite, card-glow-pulse 7.5s ease-in-out infinite;
-  z-index: 1;
-}
 
 .card--carbon > * {
   position: relative;
@@ -372,37 +269,6 @@
   }
 }
 
-@keyframes card-glow-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-}
-
-@keyframes card-glow-pulse {
-  0%,
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes card-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.75;
-    box-shadow:
-      0 0 calc(var(--card-glow-spread) * 0.25) rgba(252, 210, 135, 0.38),
-      0 0 calc(var(--card-glow-spread) * 0.45) rgba(136, 155, 255, 0.32),
-      0 0 calc(var(--card-glow-spread) * 0.65) rgba(252, 210, 135, 0.22);
-  }
-
-  50% {
-    opacity: 1;
-    box-shadow:
-      0 0 calc(var(--card-glow-spread) * 0.45) rgba(252, 210, 135, 0.6),
-      0 0 calc(var(--card-glow-spread) * 0.7) rgba(136, 155, 255, 0.45),
-      0 0 calc(var(--card-glow-spread) * 1) rgba(252, 210, 135, 0.35);
-  }
-}
 
 .section.hero {
   margin: 0 auto;
@@ -448,44 +314,6 @@
   z-index: 0;
 }
 
-.card--carbon::after {
-  --card-glow-thickness: clamp(1px, 0.35vw, 2px);
-  --card-glow-spread: clamp(10px, 2.5vw, 32px);
-  content: '';
-  position: absolute;
-  inset: calc(var(--card-glow-thickness) * -1);
-  border-radius: inherit;
-  padding: var(--card-glow-thickness);
-  pointer-events: none;
-  background:
-    conic-gradient(
-      from 0deg,
-      rgba(252, 210, 135, 0.95) 0deg,
-      rgba(136, 155, 255, 0.82) 120deg,
-      rgba(252, 210, 135, 0.98) 240deg,
-      rgba(252, 210, 135, 0.95) 360deg
-    );
-  background-clip: border-box;
-  mix-blend-mode: screen;
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  opacity: 0.68;
-  box-shadow:
-    0 0 calc(var(--card-glow-spread) * 0.16) rgba(252, 210, 135, 0.5),
-    0 0 calc(var(--card-glow-spread) * 0.28) rgba(136, 155, 255, 0.35),
-    0 0 calc(var(--card-glow-spread) * 0.38) rgba(252, 210, 135, 0.26);
-  transform: rotate(0deg);
-  transform-origin: 50% 50%;
-  will-change: transform, opacity, box-shadow;
-  animation: card-glow-spin 18s linear infinite, card-glow-pulse 7.5s ease-in-out infinite;
-  z-index: 1;
-}
 
 .card--carbon > * {
   position: relative;
@@ -529,34 +357,6 @@
   }
 }
 
-@keyframes card-glow-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes card-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.75;
-    box-shadow:
-      0 0 calc(var(--card-glow-spread) * 0.25) rgba(252, 210, 135, 0.38),
-      0 0 calc(var(--card-glow-spread) * 0.45) rgba(136, 155, 255, 0.32),
-      0 0 calc(var(--card-glow-spread) * 0.65) rgba(252, 210, 135, 0.22);
-  }
-
-  50% {
-    opacity: 1;
-    box-shadow:
-      0 0 calc(var(--card-glow-spread) * 0.45) rgba(252, 210, 135, 0.6),
-      0 0 calc(var(--card-glow-spread) * 0.7) rgba(136, 155, 255, 0.45),
-      0 0 calc(var(--card-glow-spread) * 1) rgba(252, 210, 135, 0.35);
-  }
-}
 
 .section__header {
   max-width: 760px;

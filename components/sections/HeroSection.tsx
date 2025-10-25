@@ -41,7 +41,7 @@ export function HeroSection() {
             stagger: 0.08,
             ease: 'expo.out',
           },
-          '-=0.7'
+          '-=0.8'
         )
         .from(
           ['.hero-copy__subtitle', '.hero-copy__actions', '.hero-copy__timeline', '.hero-copy__metrics'],

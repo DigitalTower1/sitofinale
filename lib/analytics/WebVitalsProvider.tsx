@@ -19,7 +19,7 @@ export function useWebVitals() {
 }
 
 export function WebVitalsProvider({ children }: { children: ReactNode }) {
-  const reporterRef = useRef<(metric: Metric) => void>();
+  const reporterRef = useRef<((metric: Metric) => void) | null>(null);
 
   useEffect(() => {
     const send = (metric: Metric) => {

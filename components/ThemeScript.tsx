@@ -1,5 +1,3 @@
-import Script from 'next/script';
-
 const THEME_SCRIPT = `(() => {
   const storageKey = 'digital-tower-theme';
   const root = document.documentElement;
@@ -23,5 +21,5 @@ const THEME_SCRIPT = `(() => {
 })();`;
 
 export function ThemeScript() {
-  return <Script id="theme-script" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />;
+  return <script id="theme-script" dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />;
 }

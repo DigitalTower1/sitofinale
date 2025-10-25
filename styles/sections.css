@@ -3,7 +3,6 @@
   margin: var(--space-4xl) auto;
   max-width: calc(var(--max-width) + var(--space-3xl) * 2);
   padding: 0 var(--space-2xl);
-  --section-connector-length: clamp(140px, 18vw, 220px);
 }
 
 .card--carbon {
@@ -36,21 +35,7 @@
 }
 
 .card__edge-light {
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(120deg, rgba(232, 184, 107, 0) 0%, rgba(232, 184, 107, 0.85) 45%, rgba(118, 134, 255, 0) 100%);
-  background-size: 220% 220%;
-  opacity: 0.85;
-  mix-blend-mode: screen;
-  padding: 2px;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  animation: edge-light-scan 7s linear infinite;
-  z-index: 3;
+  display: none;
 }
 
 .card--carbon > * {
@@ -61,82 +46,6 @@
 .card--carbon > .card__edge-light {
   z-index: 4;
 }
-
-.section__connector {
-  position: absolute;
-  left: 50%;
-  bottom: calc(-0.5 * var(--section-connector-length));
-  transform: translateX(-50%);
-  width: 4px;
-  height: var(--section-connector-length);
-  border-radius: var(--radius-pill);
-  background: linear-gradient(180deg, rgba(232, 184, 107, 0.85) 0%, rgba(120, 152, 255, 0.4) 60%, transparent 100%);
-  filter: drop-shadow(0 0 22px rgba(232, 184, 107, 0.45));
-  pointer-events: none;
-  mix-blend-mode: screen;
-  overflow: hidden;
-  animation: section-connector-pulse 6s ease-in-out infinite;
-  z-index: 2;
-}
-
-.section__connector::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.9) 50%, transparent 100%);
-  background-size: 100% 200%;
-  animation: connector-flow 3.5s linear infinite;
-}
-
-@keyframes carbon-weave {
-  0% {
-    transform: translate3d(-10%, -6%, 0) rotate(0deg);
-  }
-
-  50% {
-    transform: translate3d(8%, 10%, 0) rotate(2deg);
-  }
-
-  100% {
-    transform: translate3d(-6%, 4%, 0) rotate(-1deg);
-  }
-}
-
-@keyframes edge-light-scan {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes section-connector-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-
-  50% {
-    opacity: 0.95;
-  }
-}
-
-@keyframes connector-flow {
-  0% {
-    background-position: 0% 0%;
-  }
-
-  100% {
-    background-position: 0% 200%;
-  }
-}
-
 .card--carbon {
   position: relative;
   overflow: hidden;
@@ -227,28 +136,7 @@
   z-index: 0;
 }
 
-.card--carbon::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  pointer-events: none;
-  background: conic-gradient(
-      from var(--card-glow-angle, 0deg) at 50% 50%,
-      rgba(255, 255, 255, 0.6) 0deg,
-      rgba(232, 184, 107, 0.42) 120deg,
-      rgba(40, 124, 255, 0.2) 210deg,
-      rgba(255, 255, 255, 0.6) 360deg
-    );
-  mix-blend-mode: screen;
-  opacity: 0.58;
-  filter: blur(0.6px);
-  box-shadow: inset 0 0 14px rgba(232, 184, 107, 0.2), 0 0 36px rgba(232, 184, 107, 0.16);
-  mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  -webkit-mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  animation: card-glow-spin 16s linear infinite;
-  z-index: 1;
-}
+
 
 .card--carbon > * {
   position: relative;
@@ -259,12 +147,6 @@
   syntax: '<percentage>';
   inherits: true;
   initial-value: 0%;
-}
-
-@property --card-glow-angle {
-  syntax: '<angle>';
-  inherits: true;
-  initial-value: 0deg;
 }
 
 @keyframes carbon-weave {
@@ -298,15 +180,6 @@
   }
 }
 
-@keyframes card-glow-spin {
-  0% {
-    --card-glow-angle: 0deg;
-  }
-
-  100% {
-    --card-glow-angle: 360deg;
-  }
-}
 
 .section.hero {
   margin: 0 auto;
@@ -352,28 +225,6 @@
   z-index: 0;
 }
 
-.card--carbon::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  pointer-events: none;
-  background: conic-gradient(
-      from var(--card-glow-angle, 0deg) at 50% 50%,
-      rgba(255, 255, 255, 0.6) 0deg,
-      rgba(232, 184, 107, 0.42) 120deg,
-      rgba(40, 124, 255, 0.2) 210deg,
-      rgba(255, 255, 255, 0.6) 360deg
-    );
-  mix-blend-mode: screen;
-  opacity: 0.58;
-  filter: blur(0.6px);
-  box-shadow: inset 0 0 14px rgba(232, 184, 107, 0.2), 0 0 36px rgba(232, 184, 107, 0.16);
-  mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  -webkit-mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  animation: card-glow-spin 16s linear infinite;
-  z-index: 1;
-}
 
 .card--carbon > * {
   position: relative;
@@ -384,12 +235,6 @@
   syntax: '<percentage>';
   inherits: true;
   initial-value: 0%;
-}
-
-@property --card-glow-angle {
-  syntax: '<angle>';
-  inherits: true;
-  initial-value: 0deg;
 }
 
 @keyframes carbon-weave {
@@ -423,15 +268,6 @@
   }
 }
 
-@keyframes card-glow-spin {
-  0% {
-    --card-glow-angle: 0deg;
-  }
-
-  100% {
-    --card-glow-angle: 360deg;
-  }
-}
 
 .section.hero {
   margin: 0 auto;
@@ -477,28 +313,6 @@
   z-index: 0;
 }
 
-.card--carbon::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  pointer-events: none;
-  background: conic-gradient(
-      from var(--card-glow-angle, 0deg) at 50% 50%,
-      rgba(255, 255, 255, 0.6) 0deg,
-      rgba(232, 184, 107, 0.42) 120deg,
-      rgba(40, 124, 255, 0.2) 210deg,
-      rgba(255, 255, 255, 0.6) 360deg
-    );
-  mix-blend-mode: screen;
-  opacity: 0.58;
-  filter: blur(0.6px);
-  box-shadow: inset 0 0 14px rgba(232, 184, 107, 0.2), 0 0 36px rgba(232, 184, 107, 0.16);
-  mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  -webkit-mask: radial-gradient(circle, transparent calc(100% - 9px), rgba(0, 0, 0, 0.95) calc(100% - 5px));
-  animation: card-glow-spin 16s linear infinite;
-  z-index: 1;
-}
 
 .card--carbon > * {
   position: relative;
@@ -509,12 +323,6 @@
   syntax: '<percentage>';
   inherits: true;
   initial-value: 0%;
-}
-
-@property --card-glow-angle {
-  syntax: '<angle>';
-  inherits: true;
-  initial-value: 0deg;
 }
 
 @keyframes carbon-weave {
@@ -548,15 +356,6 @@
   }
 }
 
-@keyframes card-glow-spin {
-  0% {
-    --card-glow-angle: 0deg;
-  }
-
-  100% {
-    --card-glow-angle: 360deg;
-  }
-}
 
 .section__header {
   max-width: 760px;
@@ -1039,7 +838,6 @@
 @media (max-width: 640px) {
   .section {
     padding: 0 var(--space-lg);
-    --section-connector-length: 110px;
   }
 
   .hero__actions {

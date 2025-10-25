@@ -160,6 +160,15 @@ function patchSSRPass(pass: SSRPass) {
     }
   });
 
+  if (!(pass as unknown as { setRenderer?: (renderer: THREE.WebGLRenderer) => void }).setRenderer) {
+    (pass as unknown as { setRenderer: (renderer: THREE.WebGLRenderer) => void }).setRenderer = (renderer) => {
+      const target = pass as unknown as { renderer?: THREE.WebGLRenderer };
+      if (target.renderer !== renderer) {
+        target.renderer = renderer;
+      }
+    };
+  }
+
   pass.thickness = thicknessValue;
 }
 

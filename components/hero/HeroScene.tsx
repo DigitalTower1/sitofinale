@@ -192,6 +192,29 @@ function patchSSRPass(pass: SSRPass) {
     };
   }
 
+  if (
+    !(
+      pass as unknown as {
+        setDepthTexture?: (depthTexture: THREE.Texture | null, depthPacking?: number) => void;
+      }
+    ).setDepthTexture
+  ) {
+    (
+      pass as unknown as {
+        setDepthTexture: (depthTexture: THREE.Texture | null, depthPacking?: number) => void;
+      }
+    ).setDepthTexture = (depthTexture, depthPacking) => {
+      const target = pass as unknown as {
+        depthTexture?: THREE.Texture | null;
+        depthPacking?: number;
+      };
+      target.depthTexture = depthTexture ?? null;
+      if (typeof depthPacking === 'number') {
+        target.depthPacking = depthPacking;
+      }
+    };
+  }
+
   pass.thickness = thicknessValue;
 }
 

@@ -201,7 +201,6 @@ export function KpiSection() {
           </article>
         ))}
       </div>
-      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

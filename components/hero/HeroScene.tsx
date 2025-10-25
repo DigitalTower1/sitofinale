@@ -70,64 +70,74 @@ function patchSSRPass(pass: SSRPass) {
     }
   }
 
-  const defines = material.defines as SSRDefineRecord | undefined;
-  const syncDefines = () => {
-    if (!defines) {
-      return;
-    }
-    if (defines.DISTANCE_ATTENUATION !== undefined) {
-      defines.isDistanceAttenuation = defines.DISTANCE_ATTENUATION;
-    }
-    if (defines.FRESNEL !== undefined) {
-      defines.isFresnel = defines.FRESNEL;
-    }
-    if (defines.INFINITE_THICK !== undefined) {
-      defines.isInfiniteThick = defines.INFINITE_THICK;
-    }
-  };
+  const SSR_DEFINE_BRIDGE_FLAG = Symbol.for('ssr-define-bridge');
+  let defines = material.defines as (SSRDefineRecord & { [SSR_DEFINE_BRIDGE_FLAG]?: boolean }) | undefined;
+  const togglePairs: Array<[keyof SSRDefineRecord, keyof SSRDefineRecord]> = [
+    ['DISTANCE_ATTENUATION', 'isDistanceAttenuation'],
+    ['FRESNEL', 'isFresnel'],
+    ['INFINITE_THICK', 'isInfiniteThick']
+  ];
 
-  syncDefines();
+  const defineBridgeMap = new Map<string, string>();
+  togglePairs.forEach(([legacy, modern]) => {
+    defineBridgeMap.set(String(legacy), String(modern));
+    defineBridgeMap.set(String(modern), String(legacy));
+  });
 
-  const patchToggle = (key: 'distanceAttenuation' | 'fresnel' | 'infiniteThick', legacy: string, modern: string) => {
-    const descriptor = Object.getOwnPropertyDescriptor(pass, key);
-    if (!descriptor) {
-      return;
-    }
-
-    const { get, set, enumerable } = descriptor;
-
-    Object.defineProperty(pass, key, {
-      configurable: true,
-      enumerable,
-      get() {
-        if (get) {
-          return get.call(pass);
-        }
-        return descriptor.value;
+  if (defines && !defines[SSR_DEFINE_BRIDGE_FLAG]) {
+    const originalDefines = defines;
+    const proxy = new Proxy(originalDefines, {
+      get(target, prop, receiver) {
+        return Reflect.get(target, prop, receiver);
       },
-      set(value) {
-        if (set) {
-          set.call(pass, value);
-        } else {
-          descriptor.value = value;
+      set(target, prop, value) {
+        const key = String(prop);
+        const previous = Reflect.get(target, key);
+        if (Object.is(previous, value)) {
+          return true;
         }
-        if (defines) {
-          defines[legacy] = value;
-          defines[modern] = value;
+        const result = Reflect.set(target, key, value);
+        if (!result) {
+          return false;
+        }
+        const counterpart = defineBridgeMap.get(key);
+        if (counterpart) {
+          Reflect.set(target, counterpart, value);
           material.needsUpdate = true;
         }
+        return true;
       }
+    }) as SSRDefineRecord & { [SSR_DEFINE_BRIDGE_FLAG]?: boolean };
+
+    Object.defineProperty(originalDefines, SSR_DEFINE_BRIDGE_FLAG, {
+      value: true,
+      enumerable: false,
+      configurable: false,
+      writable: false
     });
 
-    const initial = get ? get.call(pass) : descriptor.value;
-    if (initial !== undefined) {
-      (pass as unknown as Record<string, unknown>)[key] = initial;
-    }
-  };
+    Object.defineProperty(proxy, SSR_DEFINE_BRIDGE_FLAG, {
+      value: true,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    });
 
-  patchToggle('distanceAttenuation', 'DISTANCE_ATTENUATION', 'isDistanceAttenuation');
-  patchToggle('fresnel', 'FRESNEL', 'isFresnel');
-  patchToggle('infiniteThick', 'INFINITE_THICK', 'isInfiniteThick');
+    material.defines = proxy;
+    defines = proxy;
+  }
+
+  if (defines) {
+    togglePairs.forEach(([legacy, modern]) => {
+      const legacyValue = defines![legacy];
+      const modernValue = defines![modern];
+      if (legacyValue === undefined && modernValue !== undefined) {
+        defines![legacy] = modernValue;
+      } else if (modernValue === undefined && legacyValue !== undefined) {
+        defines![modern] = legacyValue;
+      }
+    });
+  }
 
   let thicknessValue = pass.thickness;
   Object.defineProperty(pass, 'thickness', {

@@ -169,6 +169,29 @@ function patchSSRPass(pass: SSRPass) {
     };
   }
 
+  if (
+    !(
+      pass as unknown as {
+        initialize?: (
+          renderer: THREE.WebGLRenderer,
+          alpha: boolean,
+          frameBufferType: number
+        ) => void;
+      }
+    ).initialize
+  ) {
+    (
+      pass as unknown as {
+        initialize: (renderer: THREE.WebGLRenderer, alpha: boolean, frameBufferType: number) => void;
+      }
+    ).initialize = (renderer, _alpha, _frameBufferType) => {
+      const target = pass as unknown as { renderer?: THREE.WebGLRenderer };
+      if (target.renderer !== renderer) {
+        target.renderer = renderer;
+      }
+    };
+  }
+
   pass.thickness = thicknessValue;
 }
 

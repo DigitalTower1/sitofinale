@@ -1,13 +1,32 @@
-import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
+import globals from 'globals';
+import tsParser from '@typescript-eslint/parser';
+import nextPlugin from '@next/eslint-plugin-next';
 
-const config = [...nextCoreWebVitals];
-const ignoreEntry = config.find((entry) => Array.isArray(entry?.ignores));
-
-if (ignoreEntry) {
-  const existingIgnores = Array.isArray(ignoreEntry.ignores) ? ignoreEntry.ignores : [];
-  ignoreEntry.ignores = Array.from(new Set([...existingIgnores, 'dist', 'node_modules']));
-} else {
-  config.push({ ignores: ['dist', 'node_modules'] });
-}
-
-export default config;
+export default [
+  {
+    ignores: ['.next', 'dist', 'node_modules']
+  },
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        projectService: false,
+        warnOnUnsupportedTypeScriptVersion: false
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        JSX: 'readonly'
+      }
+    },
+    plugins: {
+      '@next/next': nextPlugin
+    },
+    rules: {
+      ...nextPlugin.configs['core-web-vitals'].rules
+    }
+  }
+];

@@ -164,7 +164,6 @@ export function SocialProofSection() {
           <span>{testimonial.role}</span>
         </figcaption>
       </figure>
-      <span className="section__connector" aria-hidden="true" />
     </section>
   );
 }

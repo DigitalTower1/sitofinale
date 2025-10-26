@@ -1,32 +1,16 @@
-import globals from 'globals';
-import tsParser from '@typescript-eslint/parser';
-import nextPlugin from '@next/eslint-plugin-next';
+import next from 'eslint-config-next';
 
-export default [
+const config = [
   {
-    ignores: ['.next', 'dist', 'node_modules']
+    ignores: ['.next/**', 'out/**', 'node_modules/**']
   },
+  ...next,
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        projectService: false,
-        warnOnUnsupportedTypeScriptVersion: false
-      },
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        JSX: 'readonly'
-      }
-    },
-    plugins: {
-      '@next/next': nextPlugin
-    },
     rules: {
-      ...nextPlugin.configs['core-web-vitals'].rules
+      'react/no-unknown-property': 'off',
+      'react-hooks/exhaustive-deps': 'error'
     }
   }
 ];
+
+export default config;

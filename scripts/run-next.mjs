@@ -6,7 +6,7 @@ const args = process.argv.slice(2);
 
 const env = { ...process.env };
 if (!env.TAILWIND_DISABLE_LIGHTNINGCSS) {
-  env.TAILWIND_DISABLE_LIGHTNINGCSS = 'true';
+  env.TAILWIND_DISABLE_LIGHTNINGCSS = '1';
 }
 if (!env.NEXT_DISABLE_TURBOPACK) {
   env.NEXT_DISABLE_TURBOPACK = '1';

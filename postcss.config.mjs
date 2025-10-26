@@ -1,4 +1,4 @@
-import tailwind from '@tailwindcss/postcss';
+import tailwindcss from '@tailwindcss/postcss';
 import autoprefixer from 'autoprefixer';
 
 if (typeof process !== 'undefined' && !process.env.TAILWIND_DISABLE_LIGHTNINGCSS) {
@@ -6,10 +6,7 @@ if (typeof process !== 'undefined' && !process.env.TAILWIND_DISABLE_LIGHTNINGCSS
 }
 
 const config = {
-  plugins: {
-    tailwind,
-    autoprefixer
-  }
+  plugins: [tailwindcss(), autoprefixer()]
 };
 
 export default config;
